@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: file: https://images.metmuseum.org https://upload.wikimedia.org https://thumb.wikimedia.org https://www.artic.edu https://artic.edu https://openaccess-cdn.clevelandart.org; connect-src https://collectionapi.metmuseum.org https://commons.wikimedia.org https://api.artic.edu https://images.metmuseum.org https://upload.wikimedia.org https://thumb.wikimedia.org https://www.artic.edu https://artic.edu https://openaccess-api.clevelandart.org https://openaccess-cdn.clevelandart.org; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="description" content="High-resolution classical paintings for your desktop, with a new artwork every day.">
+  <title>Classical Gallery</title>
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="core.js"></script>
+  <script defer src="image-safety.js"></script>
+  <script defer src="catalog.js"></script>
+  <script defer src="cleveland.js"></script>
+  <script defer src="discover.js"></script>
+  <script defer src="local-art.js"></script>
+  <script defer src="museum-seed.js"></script>
+  <script defer src="museum-catalog.js"></script>
+  <script defer src="select-controls.js"></script>
+  <script defer src="gallery.js"></script>
+</head>
+<body data-fit="contain">
+  <main id="gallery" aria-label="Classical art gallery">
+    <div class="slide active" aria-hidden="false">
+      <div class="backdrop" style="background-image: url('assets/fallback.jpg')"></div>
+      <img class="painting" src="assets/fallback.jpg" alt="Georges Seurat — A Sunday on La Grande Jatte" draggable="false">
+    </div>
+    <div class="slide" aria-hidden="true">
+      <div class="backdrop" style="background-image: url('assets/fallback.jpg')"></div>
+      <img class="painting" src="assets/fallback.jpg" alt="" draggable="false">
+    </div>
+  </main>
+
+  <aside id="artwork-panel" class="artwork-panel" aria-label="Artwork and gallery controls" title="Drag the artist, date or empty space to move">
+    <div id="artwork-info" class="artwork-info" aria-label="About this artwork">
+      <p class="artwork-caption"><button id="artwork-title" class="artwork-title" type="button" title="Copy artwork source link">A Sunday on La Grande Jatte</button><span class="year-separator" aria-hidden="true"> · </span><span id="artwork-year">1884</span></p>
+      <p id="artwork-country" class="artwork-country" title="Country or cultural origin reported by the museum">France</p>
+      <p id="artwork-artist" class="artwork-artist">Georges Seurat</p>
+      <p id="artwork-resolution" class="sr-only"></p>
+    </div>
+    <nav id="toolbar" class="toolbar" aria-label="Gallery controls">
+      <button id="framing-toggle" class="icon-button" type="button" title="Gallery settings" aria-label="Gallery settings" aria-expanded="false" aria-controls="framing-controls">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m9.5 3-.7 2.4-2 .9-2.3-.6-2 3.4 1.7 1.8-.2 2.2-1.5 1.8 2 3.4 2.3-.5 2 .9.7 2.3h4l.7-2.3 2-.9 2.3.5 2-3.4-1.5-1.8-.2-2.2 1.7-1.8-2-3.4-2.3.6-2-.9L13.5 3z"/><circle cx="11.5" cy="12" r="3"/></svg>
+      </button>
+      <div class="status-slot"><p id="status" class="status" role="status" aria-live="polite" aria-atomic="true"></p></div>
+      <button id="previous-button" class="icon-button" type="button" title="Previous artwork (←)" aria-label="Previous artwork">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg>
+      </button>
+      <button id="next-button" class="icon-button" type="button" title="Next artwork (→)" aria-label="Next artwork">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg>
+      </button>
+    </nav>
+    <section id="framing-controls" class="framing-controls" aria-label="Gallery settings" hidden>
+      <div class="settings-tabs" role="tablist" aria-label="Gallery settings">
+        <button id="settings-tab-framing" class="settings-tab" type="button" role="tab" aria-selected="true" aria-controls="settings-framing">Framing</button>
+        <button id="settings-tab-collection" class="settings-tab" type="button" role="tab" aria-selected="false" aria-controls="settings-collection" tabindex="-1">Collection</button>
+      </div>
+      <div id="settings-framing" class="settings-framing" role="tabpanel" aria-labelledby="settings-tab-framing">
+        <div class="framing-zoom" aria-label="Zoom">
+      <button id="zoom-out" class="icon-button" type="button" title="Hold to zoom out" aria-label="Zoom out">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 12h12"/></svg>
+      </button>
+      <button id="zoom-reset" class="icon-button zoom-reset" type="button" title="Reset zoom and position" aria-label="Reset zoom and position to 100% and centered"><span id="zoom-value">100%</span><span>Reset</span></button>
+      <button id="zoom-in" class="icon-button" type="button" title="Hold to zoom in" aria-label="Zoom in">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 12h12M12 6v12"/></svg>
+      </button>
+        </div>
+        <label class="filter-field framing-fit" for="filter-fit"><span>Image fit</span><select id="filter-fit"><option value="contain">Full painting</option><option value="cover">Fit width</option></select></label>
+        <button id="pan-stick" class="pan-stick" type="button" aria-label="Pan artwork" title="Drag to pan in any direction">
+          <span class="pan-stick-knob" aria-hidden="true"></span>
+        </button>
+      </div>
+      <div id="settings-collection" class="settings-collection" role="tabpanel" aria-labelledby="settings-tab-collection" hidden>
+        <label class="filter-field filter-wide" for="filter-collection"><span>Collection</span>
+          <select id="filter-collection">
+            <option value="all">All collections + my folders</option>
+            <option value="museum">All museum collections</option>
+            <option value="met">The Metropolitan Museum of Art</option>
+            <option value="chicago">Art Institute of Chicago</option>
+            <option value="cleveland">Cleveland Museum of Art</option>
+            <option value="local">All my folders</option>
+            <option value="local1">My folder 1</option>
+            <option value="local2">My folder 2</option>
+            <option value="local3">My folder 3</option>
+          </select>
+        </label>
+        <label class="filter-field filter-wide" for="filter-artist"><span>Artist</span>
+          <select id="filter-artist"><option value="">All artists</option></select>
+        </label>
+        <div class="filter-columns">
+          <label class="filter-field" for="filter-period"><span>Period</span>
+            <select id="filter-period">
+              <option value="all">All periods</option>
+              <option value="medieval">Before 1400</option>
+              <option value="renaissance">1400–1599</option>
+              <option value="1600s">1600–1699</option>
+              <option value="1700s">1700–1799</option>
+              <option value="1800s">1800–1900</option>
+            </select>
+          </label>
+          <label class="filter-field" for="filter-orientation"><span>Orientation</span>
+            <select id="filter-orientation">
+              <option value="all">Any orientation</option>
+              <option value="horizontal">Horizontal</option>
+              <option value="vertical">Vertical</option>
+            </select>
+          </label>
+        </div>
+        <fieldset class="filter-group"><legend>Genre <span>· choose any</span></legend>
+          <div class="filter-chips">
+              <label class="filter-chip"><input type="checkbox" name="genre" value="portrait"><span>Portrait</span></label>
+              <label class="filter-chip"><input type="checkbox" name="genre" value="landscape"><span>Landscape</span></label>
+              <label class="filter-chip"><input type="checkbox" name="genre" value="still-life"><span>Still life</span></label>
+              <label class="filter-chip"><input type="checkbox" name="genre" value="seascape"><span>Seascape</span></label>
+              <label class="filter-chip"><input type="checkbox" name="genre" value="genre"><span>Everyday life</span></label>
+              <label class="filter-chip"><input type="checkbox" name="genre" value="religious"><span>Religious</span></label>
+              <label class="filter-chip"><input type="checkbox" name="genre" value="history"><span>History</span></label>
+              <label class="filter-chip"><input type="checkbox" name="genre" value="animals"><span>Animals</span></label>
+          </div>
+        </fieldset>
+        <fieldset class="filter-group"><legend>Movement <span>· choose any</span></legend>
+          <div class="filter-chips">
+              <label class="filter-chip"><input type="checkbox" name="movement" value="renaissance"><span>Renaissance</span></label>
+              <label class="filter-chip"><input type="checkbox" name="movement" value="baroque"><span>Baroque</span></label>
+              <label class="filter-chip"><input type="checkbox" name="movement" value="rococo"><span>Rococo</span></label>
+              <label class="filter-chip"><input type="checkbox" name="movement" value="neoclassicism"><span>Neoclassicism</span></label>
+              <label class="filter-chip"><input type="checkbox" name="movement" value="romanticism"><span>Romanticism</span></label>
+              <label class="filter-chip"><input type="checkbox" name="movement" value="realism"><span>Realism</span></label>
+              <label class="filter-chip"><input type="checkbox" name="movement" value="impressionism"><span>Impressionism</span></label>
+              <label class="filter-chip"><input type="checkbox" name="movement" value="post-impressionism"><span>Post-Impressionism</span></label>
+              <label class="filter-chip"><input type="checkbox" name="movement" value="symbolism"><span>Symbolism</span></label>
+          </div>
+        </fieldset>
+        <p class="filter-help">Museum filters use available metadata. Personal folders ignore museum filters.</p>
+        <div class="filter-actions">
+          <button id="filters-reset" class="text-button" type="button">Reset</button>
+          <button id="filters-apply" class="text-button primary-button" type="button">Apply</button>
+        </div>
+        <p id="catalog-status" class="catalog-status" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+  </aside>
+</body>
+</html>

@@ -1,0 +1,190 @@
+{
+  "title": "Classical Gallery · Daily Art",
+  "type": "web",
+  "file": "index.html",
+  "preview": "assets/fallback.jpg",
+  "description": "Classical paintings from The Met, the Art Institute of Chicago and the Cleveland Museum of Art. Daily rotation, automatic museum catalogues, period, genre and movement filters, personal artwork folders, and a compact draggable control panel.",
+  "general": {
+    "properties": {
+      "interval": {
+        "text": "Change artwork every",
+        "type": "combo",
+        "value": "1440",
+        "options": [
+          {
+            "value": "1440",
+            "label": "24 hours (daily)"
+          },
+          {
+            "value": "720",
+            "label": "12 hours"
+          },
+          {
+            "value": "360",
+            "label": "6 hours"
+          },
+          {
+            "value": "60",
+            "label": "1 hour"
+          },
+          {
+            "value": "30",
+            "label": "30 minutes"
+          },
+          {
+            "value": "10",
+            "label": "10 minutes"
+          }
+        ],
+        "order": 2
+      },
+      "resolution": {
+        "text": "Image quality",
+        "type": "combo",
+        "value": "2560",
+        "options": [
+          {
+            "value": "auto",
+            "label": "Match display"
+          },
+          {
+            "value": "2560",
+            "label": "2K · high quality"
+          },
+          {
+            "value": "3840",
+            "label": "4K · up to 3840 px"
+          },
+          {
+            "value": "6144",
+            "label": "6K · up to 6144 px"
+          },
+          {
+            "value": "7680",
+            "label": "8K · up to 7680 px"
+          }
+        ],
+        "order": 3
+      },
+      "fit": {
+        "text": "Image fit",
+        "type": "combo",
+        "value": "contain",
+        "options": [
+          {
+            "value": "contain",
+            "label": "Show entire painting"
+          },
+          {
+            "value": "cover",
+            "label": "Fit width"
+          }
+        ],
+        "order": 4
+      },
+      "collection": {
+        "text": "Collection",
+        "type": "combo",
+        "value": "all",
+        "options": [
+          {
+            "value": "all",
+            "label": "All collections + my folders"
+          },
+          {
+            "value": "museum",
+            "label": "All museum collections"
+          },
+          {
+            "value": "met",
+            "label": "The Metropolitan Museum of Art"
+          },
+          {
+            "value": "chicago",
+            "label": "Art Institute of Chicago"
+          },
+          {
+            "value": "cleveland",
+            "label": "Cleveland Museum of Art"
+          },
+          {
+            "value": "local",
+            "label": "All my folders"
+          },
+          {
+            "value": "local1",
+            "label": "My folder 1"
+          },
+          {
+            "value": "local2",
+            "label": "My folder 2"
+          },
+          {
+            "value": "local3",
+            "label": "My folder 3"
+          }
+        ],
+        "order": 1
+      },
+      "landscape": {
+        "text": "Horizontal museum paintings only",
+        "type": "bool",
+        "value": false,
+        "order": 6
+      },
+      "showinfo": {
+        "text": "Show artwork title and artist",
+        "type": "bool",
+        "value": true,
+        "order": 8
+      },
+      "verticalposition": {
+        "text": "Vertical position",
+        "type": "slider",
+        "value": 50,
+        "min": 0,
+        "max": 100,
+        "editable": true,
+        "order": 5
+      },
+      "localfolder": {
+        "text": "Artwork folder 1",
+        "type": "directory",
+        "mode": "fetchall",
+        "fileType": "image",
+        "value": "",
+        "order": 9
+      },
+      "localfolder2": {
+        "text": "Artwork folder 2",
+        "type": "directory",
+        "mode": "fetchall",
+        "fileType": "image",
+        "value": "",
+        "order": 10
+      },
+      "localfolder3": {
+        "text": "Artwork folder 3",
+        "type": "directory",
+        "mode": "fetchall",
+        "fileType": "image",
+        "value": "",
+        "order": 11
+      },
+      "schemecolor": {
+        "text": "Color scheme",
+        "type": "color",
+        "value": "0 0 0",
+        "condition": "false",
+        "order": 100
+      },
+      "alignmentfliph": {
+        "text": "Flip",
+        "type": "bool",
+        "value": false,
+        "condition": "false",
+        "order": 101
+      }
+    }
+  }
+}
