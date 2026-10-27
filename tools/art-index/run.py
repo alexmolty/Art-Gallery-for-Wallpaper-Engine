@@ -88,6 +88,8 @@ destination=args.publish_dir.resolve();destination.mkdir(parents=True,exist_ok=T
 filename='art-index-'+digest[:16]+'.json';(destination/filename).write_bytes(data)
 manifest={'version':1,'generatedAt':payload['generatedAt'],'indexedCount':payload['indexedCount'],'file':filename,'sha256':digest,'contentSha256':content_fingerprint,'bytes':len(data),'coverage':payload['coverage']}
 (destination/'manifest.json').write_text(json.dumps(manifest,indent=2),encoding='utf8')
-older=sorted([p for p in destination.glob('art-index-*.json') if p.name!=filename],key=lambda p:p.stat().st_mtime,reverse=True)
-for obsolete in older[1:]:obsolete.unlink()
+keep={filename}
+if previous:keep.add(previous['file'])
+for obsolete in destination.glob('art-index-*.json'):
+ if obsolete.name not in keep:obsolete.unlink()
 print(json.dumps({'result':'PASS','indexedCount':payload['indexedCount'],'bytes':len(data),'manifest':str(destination/'manifest.json'),'coverage':payload['coverage']}),flush=True)
