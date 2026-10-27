@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-27T20:40:53Z",
+  "generatedAt": "2026-10-27T20:43:49Z",
   "indexedCount": 3430,
-  "file": "art-index-9e04fb9da2bfcb84.json",
-  "sha256": "9e04fb9da2bfcb8438e692ef1172c6a550e3c117d754206191b7fc1fed295ff9",
-  "contentSha256": "9e04fb9da2bfcb8438e692ef1172c6a550e3c117d754206191b7fc1fed295ff9",
-  "bytes": 9765530,
+  "file": "art-index-99615ba6bee087f8.json",
+  "sha256": "99615ba6bee087f80f3c4e1bf1e4e5be3737c9e5f29e72503a616714edbe975a",
+  "contentSha256": "dbf00d0b9138cdb6ff9721f84d0496114974009e22507c2a0c4fb3431d5d72f9",
+  "bytes": 9791686,
   "coverage": {
     "collectionResult": "INCOMPLETE",
     "enumeratedMetCandidates": 14423,
