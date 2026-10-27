@@ -1,6 +1,11 @@
 name: Update museum visual index
 on:
   workflow_dispatch:
+    inputs:
+      verify_only:
+        description: Verify independent CPU inference from cached catalogue
+        type: boolean
+        default: false
   schedule:
     - cron: '43 10 * * *'
 permissions:
@@ -21,19 +26,18 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
-      - uses: actions/cache@v6
+      - uses: actions/cache/restore@v6
         with:
           path: tools/art-index/cache
           key: museum-visual-index-v2-${{ github.run_id }}
           restore-keys: museum-visual-index-v2-
-          save-always: true
       - run: python -m pip install -r tools/art-index/requirements.txt
       - uses: actions/checkout@v7
         with:
           ref: art-index
           path: index-publication
       - name: Collect new metadata, analyze missing images and build verified data
-        run: python tools/art-index/run.py --publish-dir index-publication
+        run: python tools/art-index/run.py --publish-dir index-publication ${{ inputs.verify_only && '--skip-collection --verify-portability' || '' }}
       - name: Publish index data
         working-directory: index-publication
         run: |
@@ -44,3 +48,9 @@ jobs:
             git commit -m 'Refresh museum visual recommendations'
             git push origin HEAD:art-index
           fi
+      - name: Save resumable build cache
+        if: always()
+        uses: actions/cache/save@v6
+        with:
+          path: tools/art-index/cache
+          key: museum-visual-index-v2-${{ github.run_id }}

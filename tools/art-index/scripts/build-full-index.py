@@ -16,7 +16,7 @@ for art in catalog:
  if art['id'] in overrides:art['previewUrl']=overrides[art['id']]
 dino_config=json.loads((HERE/'preprocessor_config.json').read_text())
 clip_config=json.loads((HERE/'clip-preprocessor_config.json').read_text())
-model_hashes=[hashlib.sha256((HERE/name).read_bytes()).hexdigest() for name in ['model.onnx','clip-vision_model_quantized.onnx']]
+model_hashes=[hashlib.sha256((HERE/name).read_bytes()).hexdigest() for name in ['model.onnx','clip-vision_model.onnx']]
 signature='full-composition-224-v1:'+':'.join(model_hashes)
 prior=json.loads((HERE/'build-report.json').read_text(encoding='utf8'))
 old_clip,old_dino=np.load(HERE/'clip-vectors.npy'),np.load(HERE/'dinov2-vectors.npy')
@@ -60,7 +60,7 @@ def preview(art):
 
 options=ort.SessionOptions();options.intra_op_num_threads=2;options.inter_op_num_threads=1
 dino=ort.InferenceSession(str(HERE/'model.onnx'),sess_options=options,providers=['CPUExecutionProvider'])
-clip=ort.InferenceSession(str(HERE/'clip-vision_model_quantized.onnx'),sess_options=options,providers=['CPUExecutionProvider'])
+clip=ort.InferenceSession(str(HERE/'clip-vision_model.onnx'),sess_options=options,providers=['CPUExecutionProvider'])
 def feature(image,session,config,kind):
  pixels=(image/255.0-np.asarray(config['image_mean'],dtype=np.float32).reshape(1,1,3))/np.asarray(config['image_std'],dtype=np.float32).reshape(1,1,3)
  out=session.run(None,{session.get_inputs()[0].name:pixels.transpose(2,0,1)[None].copy()})
@@ -73,14 +73,17 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
   art,meta=future.result()
   if 'error' in meta:failed.append({'id':art['id'],'error':meta['error']})
   else:
-   feature_path=FEATURES/(art['id']+'.npz');cached=None
+   feature_path=FEATURES/(art['id']+'.npz');cv=dv=None
    if feature_path.exists():
     with np.load(feature_path) as loaded:
-     if str(loaded['signature'])==signature and str(loaded['previewSha256'])==meta['previewSha256']:cached=(loaded['clip'].copy(),loaded['dino'].copy())
-   if cached:cv,dv=cached
-   else:
+     parts=str(loaded['signature']).split(':')
+     if len(parts)==3 and parts[0]=='full-composition-224-v1' and str(loaded['previewSha256'])==meta['previewSha256']:
+      if parts[1]==model_hashes[0]:dv=loaded['dino'].copy()
+      if parts[2]==model_hashes[1]:cv=loaded['clip'].copy()
+   if cv is None or dv is None:
     with Image.open(PREVIEWS/(art['id']+'.png')) as image:pixels=np.asarray(image,dtype=np.float32)
-    cv=feature(pixels,clip,clip_config,'clip');dv=feature(pixels,dino,dino_config,'dino')
+    if cv is None:cv=feature(pixels,clip,clip_config,'clip')
+    if dv is None:dv=feature(pixels,dino,dino_config,'dino')
    np.savez_compressed(feature_path,clip=cv,dino=dv,signature=signature,previewSha256=meta['previewSha256'],sourceKey=meta['sourceKey'])
    indexed.append(art);clip_vectors.append(cv);dino_vectors.append(dv)
   if (n+1)%100==0:print(json.dumps({'stage':'full image inference','processed':n+1,'total':len(catalog),'indexed':len(indexed),'failed':len(failed)}),flush=True)
@@ -95,7 +98,7 @@ for start in range(0,count,64):
   top=np.argpartition(-row,min(79,count-1))[:min(80,count-1)];top=top[np.argsort(-row[top])]
   neighbors[indexed[i]['id']]=[[indexed[j]['id'],round(float(row[j]),5)] for j in top if row[j]>=.45]
 payload={'version':1,'model':'CLIP ViT-B/32 + DINOv2 ViT-S/14','indexedCount':count,'minimumScore':.45,
- 'clip':{'repository':'Xenova/clip-vit-base-patch32','revision':'d15189d','sha256':model_hashes[1],'weight':.8},
+ 'clip':{'repository':'Xenova/clip-vit-base-patch32','revision':'d15189d','sha256':model_hashes[1],'precision':'float32','weight':.8},
  'dino':{'repository':'Xenova/dinov2-small','revision':'c2bb04a','sha256':model_hashes[0],'weight':.2},
  'records':[{**a['metadata'],'indexPreviewUrl':a['previewUrl']} for a in indexed],'neighbors':neighbors,'generatedAt':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime())}
 target=HERE/'full-index.json';target.write_text(json.dumps(payload,ensure_ascii=True,separators=(',',':')),encoding='utf8')
