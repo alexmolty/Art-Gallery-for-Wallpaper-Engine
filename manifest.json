@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "generatedAt": "2026-10-27T20:13:04Z",
+  "indexedCount": 3385,
+  "file": "art-index-d663242f623458fa.json",
+  "sha256": "d663242f623458fa84c8fcfaecb9266d2da4dc6038b39628396ca2e0d5785416",
+  "contentSha256": "c4b3cf7b5fc3a665794d38468907683f8da54b2550cc2804f31584c29c52f191",
+  "bytes": 9670917,
+  "coverage": {
+    "collectionResult": "INCOMPLETE",
+    "enumeratedMetCandidates": 14423,
+    "metPendingMetadata": 14379,
+    "imageCandidates": 3385,
+    "indexedImages": 3385,
+    "pendingImages": []
+  }
+}
