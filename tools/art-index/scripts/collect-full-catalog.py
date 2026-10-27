@@ -3,12 +3,16 @@ import concurrent.futures, json, pathlib, threading, time, urllib.error, urllib.
 HERE=pathlib.Path(__file__).resolve().parent
 RAW=HERE/'full-raw';RAW.mkdir(exist_ok=True)
 REPORT=HERE/'full-collection-report.json'
-lock=threading.Lock();next_request=0.0
+lock=threading.Lock();next_requests={}
 def get(url):
- global next_request
+ # Met's firewall can block short bursts well below its documented API limit.
+ # Pace ordinary public requests and stop the source on 403/429.
+ source='met' if url.startswith('https://collectionapi.metmuseum.org/') else 'cleveland'
+ interval=1.0 if source=='met' else .04
  for attempt in range(3):
   with lock:
-   wait=max(0,next_request-time.monotonic());next_request=max(next_request,time.monotonic())+.04
+   now=time.monotonic();next_request=next_requests.get(source,0)
+   wait=max(0,next_request-now);next_requests[source]=max(next_request,now)+interval
   if wait:time.sleep(wait)
   try:
    request=urllib.request.Request(url,headers={'User-Agent':'ClassicalGallery-VisualIndex/2.0 (museum Open Access catalogue indexing)'})
@@ -58,7 +62,7 @@ def object_record(id):
  except Exception as error:
   if isinstance(error,urllib.error.HTTPError) and error.code in (403,429):met_blocked.set()
   return id,str(error)
-with concurrent.futures.ThreadPoolExecutor(max_workers=16) as executor:
+with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
  futures=[executor.submit(object_record,id) for id in sorted(all_ids)]
  for future in concurrent.futures.as_completed(futures):
   id,error=future.result()

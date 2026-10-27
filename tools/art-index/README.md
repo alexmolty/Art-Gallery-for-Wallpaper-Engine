@@ -6,7 +6,7 @@ The job enumerates Cleveland painting pages and Met painting searches by departm
 
 The bootstrap contains 3,385 public museum records and their previously computed image features, including all 391 starter artworks. It contains no private image, personal folder path, credential, model weight or executable. The two model downloads are pinned by revision and verified against SHA-256 hashes in `run.py`.
 
-The initial complete Cleveland scan accepted 3,331 paintings out of 3,907 records. Local Met metadata access was blocked with HTTP 403: 14,423 candidates were enumerated, but 14,379 still required metadata access. The job reports incomplete coverage when upstream collection or image analysis fails; a candidate is not described as indexed before its image has been processed. Existing valid records are retained during source failures.
+The initial complete Cleveland scan accepted 3,331 paintings out of 3,907 records. Met searches enumerated 14,423 candidates. Local access and the first GitHub job encountered HTTP 403, leaving incomplete metadata coverage. The first job successfully analyzed 45 additional works and published 3,430 indexed images. Subsequent scans pace Met requests at one per second with at most two pending workers, stop on 403/429, and resume from saved raw records. A cold complete scan can take several hours; daily runs reuse the cache. The job reports incomplete coverage when upstream collection or image analysis fails; a candidate is not described as indexed before its image has been processed. Existing valid records are retained during source failures. Build caches are saved even when a job fails.
 
 Run from the repository root:
 
