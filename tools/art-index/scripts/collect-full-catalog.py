@@ -1,5 +1,5 @@
 """Enumerate complete supported museum painting feeds, with resumable raw metadata."""
-import concurrent.futures, json, pathlib, threading, time, urllib.error, urllib.parse, urllib.request
+import concurrent.futures, json, os, pathlib, threading, time, urllib.error, urllib.parse, urllib.request
 HERE=pathlib.Path(__file__).resolve().parent
 RAW=HERE/'full-raw';RAW.mkdir(exist_ok=True)
 REPORT=HERE/'full-collection-report.json'
@@ -44,6 +44,8 @@ for department in departments:
 (HERE/'full-met-ids.json').write_text(json.dumps(sorted(all_ids)),encoding='utf8')
 failures=[];completed=0
 met_blocked=threading.Event()
+metadata_deadline=min(time.time()+max(0,float(os.environ.get('ART_INDEX_METADATA_BUDGET_SECONDS','3600'))),
+                      float(os.environ.get('ART_INDEX_RUN_DEADLINE','inf')))
 stamp=HERE/'met-last-success.txt'
 refresh_ids=set()
 if stamp.exists():
@@ -56,6 +58,7 @@ def object_record(id):
  target=RAW/('met-'+str(id)+'.json')
  if target.exists() and id not in refresh_ids:return id,None
  if met_blocked.is_set():return id,'Met API blocked; deferred until a later build'
+ if time.time()>=metadata_deadline:return id,'Metadata time budget reached; deferred until a later build'
  try:
   record=get(MET+'v1/objects/'+str(id))
   target.write_text(json.dumps(record),encoding='utf8');return id,None
@@ -72,3 +75,4 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
 report={'result':'PASS' if not failures else 'INCOMPLETE','clevelandRecords':len(cma),'metEnumeratedIDs':len(all_ids),'metFailures':failures,'metDepartments':searches}
 if not failures:stamp.write_text(time.strftime('%Y-%m-%d',time.gmtime()),encoding='utf8')
 REPORT.write_text(json.dumps(report,indent=2),encoding='utf8');print(json.dumps({k:v for k,v in report.items() if k!='metFailures'}|{'metFailureCount':len(failures),'metBlocked':met_blocked.is_set()}),flush=True)
+

@@ -5,9 +5,10 @@ CONTEXT=ROOT/'cache';WORK=CONTEXT/'work/ai-index';SCHEMA=CONTEXT/'outputs/chicag
 parser=argparse.ArgumentParser();parser.add_argument('--offline',action='store_true');parser.add_argument('--skip-collection',action='store_true');parser.add_argument('--verify-portability',action='store_true');parser.add_argument('--publish-dir',type=pathlib.Path,required=True);args=parser.parse_args()
 WORK.mkdir(parents=True,exist_ok=True);SCHEMA.mkdir(parents=True,exist_ok=True)
 for name in ['core.js','museum-catalog.js']:shutil.copyfile(ROOT/'schema'/name,SCHEMA/name)
-for name in ['collect-full-catalog.py','normalize-full-catalog.cjs','build-full-index.py','resolve-missing-previews.py']:shutil.copyfile(ROOT/'scripts'/name,WORK/name)
+for name in ['collect-full-catalog.py','normalize-full-catalog.cjs','build-full-index.py','resolve-missing-previews.py','build-vector-index.py']:shutil.copyfile(ROOT/'scripts'/name,WORK/name)
 for name in ['gallery-records.json','catalog.json','preview-overrides.json']:
  if not (WORK/name).exists():shutil.copyfile(ROOT/'bootstrap'/name,WORK/name)
+shutil.copyfile(ROOT/'bootstrap/masterpieces.json',WORK/'masterpieces.json')
 previous_manifest=args.publish_dir/'manifest.json'
 previous=None
 if previous_manifest.exists():
@@ -20,6 +21,10 @@ if previous_manifest.exists():
  (WORK/'catalog.json').write_text(json.dumps([{'id':str(a['id']),'previewUrl':a.get('indexPreviewUrl') or a['imageUrl'],'imageUrl':a['imageUrl']} for a in previous_data['records']]),encoding='utf8')
 if not (WORK/'build-report.json').exists():(WORK/'build-report.json').write_text('{"provenance":[]}',encoding='utf8')
 os.environ['OPENBLAS_NUM_THREADS']='2';os.environ['OMP_NUM_THREADS']='2';os.environ['MKL_NUM_THREADS']='2'
+# Leave time for publishing and the Actions cache save before the job's six-hour
+# timeout. Cache hits remain usable; new work beyond the deadline is deferred.
+os.environ.setdefault('ART_INDEX_RUN_DEADLINE',str(int(time.time()+4.5*3600)))
+os.environ.setdefault('ART_INDEX_METADATA_BUDGET_SECONDS','3600')
 if args.offline:os.environ['ART_INDEX_OFFLINE']='1'
 MODELS=[('model.onnx','https://huggingface.co/Xenova/dinov2-small/resolve/c2bb04a/onnx/model.onnx','83141175ec78b4ff9a2bb58a4c7c264ba0054d1c2e122e5a8114b79a8d4179ea'),
  ('clip-vision_model.onnx','https://huggingface.co/Xenova/clip-vit-base-patch32/resolve/d15189d/onnx/vision_model.onnx','fd6e1402a588279d1723c7534d4bcba5bc0b14b47dfab0e46f8c47b8270d7d40')]
@@ -62,7 +67,7 @@ if not args.offline and not args.skip_collection:
   print('Museum collection incomplete; preserving cached metadata and reporting coverage.',flush=True)
 run('normalize-full-catalog.cjs');run('build-full-index.py')
 first=json.loads((WORK/'full-index-report.json').read_text(encoding='utf8'))
-if first['failed'] and not args.offline:
+if first['failed'] and not args.offline and time.time()<float(os.environ['ART_INDEX_RUN_DEADLINE']):
  run('resolve-missing-previews.py');run('build-full-index.py')
 payload=json.loads((WORK/'full-index.json').read_text(encoding='utf8'))
 for id in probe_ids:
@@ -78,18 +83,26 @@ inference=json.loads((WORK/'full-index-report.json').read_text(encoding='utf8'))
 payload['coverage']={'collectionResult':collection['result'],'enumeratedMetCandidates':collection.get('metEnumeratedIDs',0),'metPendingMetadata':len(collection.get('metFailures',[])),
  'imageCandidates':inference['catalogCount'],'indexedImages':inference['indexedCount'],'pendingImages':inference['failed']}
 payload['updateManifest']='https://raw.githubusercontent.com/alexmolty/Art-Gallery-for-Wallpaper-Engine/art-index/manifest.json'
-content_fingerprint=hashlib.sha256(json.dumps({'algorithm':3,'records':payload['records'],'coverage':payload['coverage'],
- 'models':[payload['clip']['sha256'],payload['dino']['sha256']]},sort_keys=True,separators=(',',':')).encode('utf8')).hexdigest()
-if previous and previous.get('contentSha256')==content_fingerprint:
- print(json.dumps({'result':'PASS','unchanged':True,'indexedCount':payload['indexedCount'],'manifest':str(previous_manifest)}),flush=True);sys.exit(0)
-data=json.dumps(payload,ensure_ascii=True,separators=(',',':')).encode('utf8');digest=hashlib.sha256(data).hexdigest()
-if len(data)>32*1024*1024:raise RuntimeError('Index exceeds renderer update size limit; previous publication retained')
+# Generate v2 from the same verified records and FP32 image features. The
+# optional rowwise INT8 encoding is storage only; it is not model inference.
+(WORK/'full-index.json').write_text(json.dumps(payload,ensure_ascii=True,separators=(',',':')),encoding='utf8')
+run('build-vector-index.py')
+vector_payload=json.loads((WORK/'vector-index.json').read_text(encoding='utf8'))
+from publish_index import publish_index
 destination=args.publish_dir.resolve();destination.mkdir(parents=True,exist_ok=True)
-filename='art-index-'+digest[:16]+'.json';(destination/filename).write_bytes(data)
-manifest={'version':1,'generatedAt':payload['generatedAt'],'indexedCount':payload['indexedCount'],'file':filename,'sha256':digest,'contentSha256':content_fingerprint,'bytes':len(data),'coverage':payload['coverage']}
-(destination/'manifest.json').write_text(json.dumps(manifest,indent=2),encoding='utf8')
-keep={filename}
-if previous:keep.add(previous['file'])
-for obsolete in destination.glob('art-index-*.json'):
- if obsolete.name not in keep:obsolete.unlink()
-print(json.dumps({'result':'PASS','indexedCount':payload['indexedCount'],'bytes':len(data),'manifest':str(destination/'manifest.json'),'coverage':payload['coverage']}),flush=True)
+result=publish_index(destination/'v2',vector_payload)
+print('VECTOR_PUBLICATION '+json.dumps(result),flush=True)
+# Old subscribers retain their v1 manifest and payload when the expanded
+# neighbor table exceeds the legacy client's 32 MiB limit.
+legacy_records=[a for a in payload['records'] if not str(a['id']).startswith('masterpiece-')]
+legacy_ids={str(a['id']) for a in legacy_records}
+legacy_payload={**payload,'indexedCount':len(legacy_records),'records':legacy_records,
+ 'neighbors':{id:[row for row in rows if str(row[0]) in legacy_ids] for id,rows in payload['neighbors'].items() if str(id) in legacy_ids},
+ 'coverage':{**payload['coverage'],'indexedImages':len(legacy_records),'curatedWorksExcluded':payload['indexedCount']-len(legacy_records)}}
+legacy_bytes=len(json.dumps(legacy_payload,ensure_ascii=True,separators=(',',':')).encode('utf8'))
+if legacy_bytes>32*1024*1024 and previous:
+ print('LEGACY_PUBLICATION '+json.dumps({'result':'RETAINED','reason':'legacy size limit','indexedCount':previous.get('indexedCount'),'bytes':legacy_bytes}),flush=True)
+else:
+ result=publish_index(destination,legacy_payload)
+ print('LEGACY_PUBLICATION '+json.dumps(result),flush=True)
+

@@ -21,6 +21,15 @@ for(const file of metFiles){
  previews.set(String(art.id),record.primaryImageSmall||record.primaryImage);
 }
 const originalPreviews=new Map(JSON.parse(fs.readFileSync(path.join(here,'catalog.json'),'utf8')).map(a=>[a.id,a]));
+// Curated files are manually checked for rights, size, CORS and source before
+// they enter this list. Their actual images still undergo the same inference.
+const curated=JSON.parse(fs.readFileSync(path.join(here,'masterpieces.json'),'utf8'));
+for(const art of curated){
+ if(!/^masterpiece-[a-z0-9-]+$/.test(art.id)||art.masterpiece!==true||art.sourceMuseum!=='masterpieces'||
+    !art.verifiedCommons||art.license!=='Public domain'||!/^https:\/\/(?:thumb|upload)\.wikimedia\.org\//.test(art.imageUrl)||!art.pageUrl)
+  throw new Error('Invalid curated artwork: '+String(art.id));
+ byId.set(art.id,art);previews.set(art.id,art.imageUrl);
+}
 const inventory=[...byId.values()].filter(a=>C.eligible(a,C.settings({}))).map(art=>({
  id:String(art.id),title:art.title,artist:art.artist,artistKey:C.artistKey(art.artist),pageUrl:art.pageUrl,imageUrl:art.imageUrl,
  previewUrl:previews.get(String(art.id))||originalPreviews.get(String(art.id))?.previewUrl||art.imageUrl,
@@ -29,3 +38,4 @@ const inventory=[...byId.values()].filter(a=>C.eligible(a,C.settings({}))).map(a
 }));
 fs.writeFileSync(path.join(here,'full-catalog.json'),JSON.stringify(inventory));
 console.log(JSON.stringify({accepted:inventory.length,clevelandRecords:cma.length,metObjectsAvailable:metFiles.length,rejected,bySource:inventory.reduce((r,a)=>(r[a.metadata.sourceMuseum]=(r[a.metadata.sourceMuseum]||0)+1,r),{})}));
+

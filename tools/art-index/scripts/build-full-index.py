@@ -18,6 +18,7 @@ dino_config=json.loads((HERE/'preprocessor_config.json').read_text())
 clip_config=json.loads((HERE/'clip-preprocessor_config.json').read_text())
 model_hashes=[hashlib.sha256((HERE/name).read_bytes()).hexdigest() for name in ['model.onnx','clip-vision_model.onnx']]
 signature='full-composition-224-v1:'+':'.join(model_hashes)
+deadline=float(os.environ.get('ART_INDEX_RUN_DEADLINE','inf'))
 prior=json.loads((HERE/'build-report.json').read_text(encoding='utf8'))
 old_clip,old_dino=np.load(HERE/'clip-vectors.npy'),np.load(HERE/'dinov2-vectors.npy')
 for i,record in enumerate(prior['provenance']):
@@ -34,6 +35,7 @@ def preview(art):
    if str(cached['signature'])==signature and 'sourceKey' in cached and str(cached['sourceKey'])==source_key:
     return art,{'previewSha256':str(cached['previewSha256']),'sourceKey':source_key,'cachedFeatureOnly':True}
    stale_feature='sourceKey' in cached and str(cached['sourceKey'])!=source_key
+ if time.time()>=deadline:return art,{'error':'Image time budget reached; deferred until a later build'}
  if target.exists() and meta_path.exists():
   previous=json.loads(meta_path.read_text())
   if previous.get('sourceKey')==source_key or not stale_feature and not previous.get('sourceKey') and previous.get('source') in [art['previewUrl'],art['imageUrl'],art.get('localPath')]:
@@ -81,6 +83,9 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
       if parts[1]==model_hashes[0]:dv=loaded['dino'].copy()
       if parts[2]==model_hashes[1]:cv=loaded['clip'].copy()
    if cv is None or dv is None:
+    if time.time()>=deadline:
+     failed.append({'id':art['id'],'error':'Image time budget reached; deferred until a later build'})
+     continue
     with Image.open(PREVIEWS/(art['id']+'.png')) as image:pixels=np.asarray(image,dtype=np.float32)
     if cv is None:cv=feature(pixels,clip,clip_config,'clip')
     if dv is None:dv=feature(pixels,dino,dino_config,'dino')
@@ -105,3 +110,4 @@ target=HERE/'full-index.json';target.write_text(json.dumps(payload,ensure_ascii=
 report={'result':'PASS' if not failed else 'INCOMPLETE','catalogCount':len(catalog),'indexedCount':count,'failed':failed,'indexBytes':target.stat().st_size,'ids':[a['id'] for a in indexed]}
 (HERE/'full-index-report.json').write_text(json.dumps(report,indent=2),encoding='utf8')
 print(json.dumps({k:v for k,v in report.items() if k not in ['ids','failed']}|{'failed':failed[:12],'failureCount':len(failed)}),flush=True)
+
