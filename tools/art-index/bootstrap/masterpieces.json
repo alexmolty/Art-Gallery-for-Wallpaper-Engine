@@ -5,7 +5,7 @@
     "masterpiece": true,
     "title": "Mona Lisa",
     "artist": "Leonardo da Vinci",
-    "date": "c. 1503\u20131506",
+    "date": "c. 1503–1506",
     "dateStart": 1503,
     "dateEnd": 1503,
     "artistNationality": "Italy",
@@ -23,7 +23,7 @@
     "license": "Public domain",
     "imageLicense": "Public domain",
     "imageLicenseUrl": "",
-    "alt": "Mona Lisa \u2014 Leonardo da Vinci"
+    "alt": "Mona Lisa — Leonardo da Vinci"
   },
   {
     "id": "masterpiece-pearl-earring",
@@ -49,7 +49,7 @@
     "license": "Public domain",
     "imageLicense": "Public domain",
     "imageLicenseUrl": "",
-    "alt": "Girl with a Pearl Earring \u2014 Johannes Vermeer"
+    "alt": "Girl with a Pearl Earring — Johannes Vermeer"
   },
   {
     "id": "masterpiece-starry-night",
@@ -75,7 +75,7 @@
     "license": "Public domain",
     "imageLicense": "Public domain",
     "imageLicenseUrl": "",
-    "alt": "The Starry Night \u2014 Vincent van Gogh"
+    "alt": "The Starry Night — Vincent van Gogh"
   },
   {
     "id": "masterpiece-night-watch",
@@ -102,7 +102,7 @@
     "license": "Public domain",
     "imageLicense": "Public domain",
     "imageLicenseUrl": "",
-    "alt": "The Night Watch \u2014 Rembrandt van Rijn"
+    "alt": "The Night Watch — Rembrandt van Rijn"
   },
   {
     "id": "masterpiece-the-kiss",
@@ -110,7 +110,7 @@
     "masterpiece": true,
     "title": "The Kiss",
     "artist": "Gustav Klimt",
-    "date": "1907\u20131908",
+    "date": "1907–1908",
     "dateStart": 1908,
     "dateEnd": 1908,
     "artistNationality": "Austria",
@@ -128,7 +128,7 @@
     "license": "Public domain",
     "imageLicense": "Public domain",
     "imageLicenseUrl": "",
-    "alt": "The Kiss \u2014 Gustav Klimt"
+    "alt": "The Kiss — Gustav Klimt"
   },
   {
     "id": "masterpiece-great-wave",
@@ -155,7 +155,7 @@
     "license": "Public domain",
     "imageLicense": "Public domain",
     "imageLicenseUrl": "",
-    "alt": "The Great Wave off Kanagawa \u2014 Katsushika Hokusai"
+    "alt": "The Great Wave off Kanagawa — Katsushika Hokusai"
   },
   {
     "id": "masterpiece-birth-venus",
@@ -181,7 +181,7 @@
     "license": "Public domain",
     "imageLicense": "Public domain",
     "imageLicenseUrl": "",
-    "alt": "The Birth of Venus \u2014 Sandro Botticelli"
+    "alt": "The Birth of Venus — Sandro Botticelli"
   },
   {
     "id": "masterpiece-creation-adam",
@@ -207,14 +207,14 @@
     "license": "Public domain",
     "imageLicense": "Public domain",
     "imageLicenseUrl": "",
-    "alt": "The Creation of Adam \u2014 Michelangelo"
+    "alt": "The Creation of Adam — Michelangelo"
   },
   {
     "id": "masterpiece-las-meninas",
     "sourceMuseum": "masterpieces",
     "masterpiece": true,
     "title": "Las Meninas",
-    "artist": "Diego Vel\u00e1zquez",
+    "artist": "Diego Velázquez",
     "date": "1656",
     "dateStart": 1656,
     "dateEnd": 1656,
@@ -225,22 +225,22 @@
     "width": 3840,
     "height": 4414,
     "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bc/Las_Meninas_by_Diego_Vel%C3%A1zquez.jpg/3840px-Las_Meninas_by_Diego_Vel%C3%A1zquez.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "pageUrl": "https://commons.wikimedia.org/wiki/File:Las_Meninas_by_Diego_Vel\u00e1zquez.jpg",
-    "commonsFile": "File:Las Meninas by Diego Vel\u00e1zquez.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Las_Meninas_by_Diego_Velázquez.jpg",
+    "commonsFile": "File:Las Meninas by Diego Velázquez.jpg",
     "commonsPageUrl": "https://commons.wikimedia.org/wiki/File:Las_Meninas_by_Diego_Vel%C3%A1zquez.jpg",
     "verifiedCommons": true,
     "source": "Museo del Prado / Wikimedia Commons",
     "license": "Public domain",
     "imageLicense": "Public domain",
     "imageLicenseUrl": "",
-    "alt": "Las Meninas \u2014 Diego Vel\u00e1zquez"
+    "alt": "Las Meninas — Diego Velázquez"
   },
   {
     "id": "masterpiece-liberty",
     "sourceMuseum": "masterpieces",
     "masterpiece": true,
     "title": "Liberty Leading the People",
-    "artist": "Eug\u00e8ne Delacroix",
+    "artist": "Eugène Delacroix",
     "date": "1830",
     "dateStart": 1830,
     "dateEnd": 1830,
@@ -251,15 +251,15 @@
     "width": 3840,
     "height": 3047,
     "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Eug%C3%A8ne_Delacroix_-_Liberty_Leading_the_People.jpeg/3840px-Eug%C3%A8ne_Delacroix_-_Liberty_Leading_the_People.jpeg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "pageUrl": "https://commons.wikimedia.org/wiki/File:Eug\u00e8ne_Delacroix_-_Liberty_Leading_the_People.jpeg",
-    "commonsFile": "File:Eug\u00e8ne Delacroix - Liberty Leading the People.jpeg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Eugène_Delacroix_-_Liberty_Leading_the_People.jpeg",
+    "commonsFile": "File:Eugène Delacroix - Liberty Leading the People.jpeg",
     "commonsPageUrl": "https://commons.wikimedia.org/wiki/File:Eug%C3%A8ne_Delacroix_-_Liberty_Leading_the_People.jpeg",
     "verifiedCommons": true,
     "source": "Louvre Museum / Wikimedia Commons",
     "license": "Public domain",
     "imageLicense": "Public domain",
     "imageLicenseUrl": "",
-    "alt": "Liberty Leading the People \u2014 Eug\u00e8ne Delacroix"
+    "alt": "Liberty Leading the People — Eugène Delacroix"
   },
   {
     "id": "masterpiece-last-supper",
@@ -267,7 +267,7 @@
     "masterpiece": true,
     "title": "The Last Supper",
     "artist": "Leonardo da Vinci",
-    "date": "c. 1495\u20131498",
+    "date": "c. 1495–1498",
     "dateStart": 1498,
     "dateEnd": 1498,
     "artistNationality": "Italy",
@@ -285,7 +285,7 @@
     "license": "Public domain",
     "imageLicense": "Public domain",
     "imageLicenseUrl": "",
-    "alt": "The Last Supper \u2014 Leonardo da Vinci"
+    "alt": "The Last Supper — Leonardo da Vinci"
   },
   {
     "id": "masterpiece-wanderer",
@@ -311,7 +311,7 @@
     "license": "Public domain",
     "imageLicense": "Public domain",
     "imageLicenseUrl": "",
-    "alt": "Wanderer above the Sea of Fog \u2014 Caspar David Friedrich"
+    "alt": "Wanderer above the Sea of Fog — Caspar David Friedrich"
   },
   {
     "id": "masterpiece-earthly-delights",
@@ -319,7 +319,7 @@
     "masterpiece": true,
     "title": "The Garden of Earthly Delights",
     "artist": "Hieronymus Bosch",
-    "date": "c. 1490\u20131510",
+    "date": "c. 1490–1510",
     "dateStart": 1500,
     "dateEnd": 1500,
     "artistNationality": "Netherlands",
@@ -337,6 +337,59 @@
     "license": "Public domain",
     "imageLicense": "Public domain",
     "imageLicenseUrl": "",
-    "alt": "The Garden of Earthly Delights \u2014 Hieronymus Bosch"
+    "alt": "The Garden of Earthly Delights — Hieronymus Bosch"
+  },
+  {
+    "id": "met-11417",
+    "objectId": 11417,
+    "sourceMuseum": "met",
+    "title": "Washington Crossing the Delaware",
+    "artist": "Emanuel Leutze",
+    "date": "1851",
+    "dateStart": 1851,
+    "dateEnd": 1851,
+    "styles": [],
+    "tags": [
+      "Soldiers",
+      "American Revolution",
+      "George Washington",
+      "Men",
+      "Horses",
+      "Flags",
+      "Boats"
+    ],
+    "subjects": [
+      "Soldiers",
+      "American Revolution",
+      "George Washington",
+      "Men",
+      "Horses",
+      "Flags",
+      "Boats"
+    ],
+    "country": "",
+    "culture": "American",
+    "artistNationality": "German American",
+    "medium": "Oil on canvas",
+    "department": "The American Wing",
+    "width": 3840,
+    "height": 2460,
+    "pendingValidation": false,
+    "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/95/Washington_Crossing_the_Delaware_by_Emanuel_Leutze%2C_MMA-NYC%2C_1851.jpg/3840px-Washington_Crossing_the_Delaware_by_Emanuel_Leutze%2C_MMA-NYC%2C_1851.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "pageUrl": "https://www.metmuseum.org/art/collection/search/11417",
+    "source": "The Metropolitan Museum of Art / Wikimedia Commons",
+    "license": "CC0",
+    "metadataUpdatedAt": "2025-10-03T04:51:20.327Z",
+    "alt": "Washington Crossing the Delaware — Emanuel Leutze",
+    "genres": [
+      "animals"
+    ],
+    "movements": [],
+    "indexPreviewUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/95/Washington_Crossing_the_Delaware_by_Emanuel_Leutze%2C_MMA-NYC%2C_1851.jpg/3840px-Washington_Crossing_the_Delaware_by_Emanuel_Leutze%2C_MMA-NYC%2C_1851.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "masterpiece": true,
+    "verifiedCommons": true,
+    "commonsFile": "File:Washington Crossing the Delaware by Emanuel Leutze, MMA-NYC, 1851.jpg",
+    "commonsPageUrl": "https://commons.wikimedia.org/wiki/File:Washington_Crossing_the_Delaware_by_Emanuel_Leutze,_MMA-NYC,_1851.jpg",
+    "imageLicense": "Public domain"
   }
 ]

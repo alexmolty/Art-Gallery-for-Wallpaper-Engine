@@ -25,10 +25,25 @@ const originalPreviews=new Map(JSON.parse(fs.readFileSync(path.join(here,'catalo
 // they enter this list. Their actual images still undergo the same inference.
 const curated=JSON.parse(fs.readFileSync(path.join(here,'masterpieces.json'),'utf8'));
 for(const art of curated){
- if(!/^masterpiece-[a-z0-9-]+$/.test(art.id)||art.masterpiece!==true||art.sourceMuseum!=='masterpieces'||
-    !art.verifiedCommons||art.license!=='Public domain'||!/^https:\/\/(?:thumb|upload)\.wikimedia\.org\//.test(art.imageUrl)||!art.pageUrl)
+ const standalone=/^masterpiece-[a-z0-9-]+$/.test(art.id)&&art.sourceMuseum==='masterpieces'&&art.license==='Public domain';
+ const metOverride=/^met-\d+$/.test(art.id)&&art.sourceMuseum==='met'&&art.imageLicense==='Public domain'&&
+   art.pageUrl==='https://www.metmuseum.org/art/collection/search/'+art.id.slice(4)&&
+   typeof art.commonsFile==='string'&&art.commonsFile.startsWith('File:')&&
+   /^https:\/\/commons\.wikimedia\.org\/wiki\/File:/.test(art.commonsPageUrl||'')&&
+   Number.isSafeInteger(art.width)&&Number.isSafeInteger(art.height)&&art.width>0&&art.height>0&&
+   art.width*art.height<=48000000&&Math.max(art.width,art.height)<=12000;
+ if(!(standalone||metOverride)||art.masterpiece!==true||!art.verifiedCommons||
+    !/^https:\/\/(?:thumb|upload)\.wikimedia\.org\//.test(art.imageUrl)||!art.pageUrl)
   throw new Error('Invalid curated artwork: '+String(art.id));
- byId.set(art.id,art);previews.set(art.id,art.imageUrl);
+ if(metOverride){
+  const museum=byId.get(art.id);
+  // Never resurrect a museum object removed by the current eligibility checks.
+  if(!museum||museum.sourceMuseum!=='met')continue;
+  byId.set(art.id,{...museum,imageUrl:art.imageUrl,width:art.width,height:art.height,pendingValidation:false,
+   masterpiece:true,verifiedCommons:true,commonsFile:art.commonsFile,commonsPageUrl:art.commonsPageUrl,
+   imageLicense:art.imageLicense,source:art.source});
+ }else byId.set(art.id,art);
+ previews.set(art.id,art.imageUrl);
 }
 const inventory=[...byId.values()].filter(a=>C.eligible(a,C.settings({}))).map(art=>({
  id:String(art.id),title:art.title,artist:art.artist,artistKey:C.artistKey(art.artist),pageUrl:art.pageUrl,imageUrl:art.imageUrl,
