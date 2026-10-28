@@ -81,6 +81,7 @@ for id in probe_ids:
 collection=json.loads((WORK/'full-collection-report.json').read_text(encoding='utf8')) if (WORK/'full-collection-report.json').exists() else {'result':'INCOMPLETE','metEnumeratedIDs':14423}
 inference=json.loads((WORK/'full-index-report.json').read_text(encoding='utf8'))
 payload['coverage']={'collectionResult':collection['result'],'enumeratedMetCandidates':collection.get('metEnumeratedIDs',0),'metPendingMetadata':len(collection.get('metFailures',[])),
+ 'clevelandError':str(collection.get('clevelandError') or '')[:200],
  'imageCandidates':inference['catalogCount'],'indexedImages':inference['indexedCount'],'pendingImages':inference['failed']}
 payload['updateManifest']='https://raw.githubusercontent.com/alexmolty/Art-Gallery-for-Wallpaper-Engine/art-index/manifest.json'
 # Generate v2 from the same verified records and FP32 image features. The

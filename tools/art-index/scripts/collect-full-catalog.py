@@ -23,12 +23,21 @@ def get(url):
    time.sleep(2*(attempt+1))
 fields='id,title,creators,creation_date,creation_date_earliest,creation_date_latest,culture,technique,department,collection,type,share_license_status,images,url,updated_at'
 base='https://openaccess-api.clevelandart.org/api/artworks/?'+urllib.parse.urlencode({'cc0':'','has_image':'1','type':'Painting','fields':fields,'limit':'400'})
-first=get(base+'&skip=0');total=first['info']['total'];cma=first['data']
-for skip in range(400,total,400):
- page=get(base+'&skip='+str(skip));cma.extend(page['data'])
- print(json.dumps({'stage':'Cleveland metadata','received':len(cma),'total':total}),flush=True)
-assert len({a['id'] for a in cma})==total
-(HERE/'full-cleveland.json').write_text(json.dumps(cma),encoding='utf8')
+cleveland_file=HERE/'full-cleveland.json';cleveland_error=None
+try:
+ first=get(base+'&skip=0');total=first['info']['total'];cma=first['data']
+ for skip in range(400,total,400):
+  page=get(base+'&skip='+str(skip));cma.extend(page['data'])
+  print(json.dumps({'stage':'Cleveland metadata','received':len(cma),'total':total}),flush=True)
+ unique=len({a['id'] for a in cma})
+ if unique!=total:raise ValueError(f'Cleveland pagination returned {unique} unique records for {total} reported items')
+ cleveland_file.write_text(json.dumps(cma),encoding='utf8')
+except Exception as error:
+ # Pagination can change while traversing. Never replace the last complete
+ # snapshot with a partial or duplicate feed, and continue the Met scan.
+ if not cleveland_file.exists():raise
+ cleveland_error=str(error);cma=json.loads(cleveland_file.read_text(encoding='utf8'))
+ print(json.dumps({'stage':'Cleveland metadata','result':'INCOMPLETE','error':cleveland_error,'cachedRecords':len(cma)}),flush=True)
 MET='https://collectionapi.metmuseum.org/public/collection/'
 departments=get(MET+'v1/departments')['departments'];all_ids=set();searches=[]
 for department in departments:
@@ -72,7 +81,8 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
   completed+=1
   if error:failures.append({'id':id,'error':error})
   if completed%250==0:print(json.dumps({'stage':'Met object metadata','done':completed,'total':len(all_ids),'failed':len(failures)}),flush=True)
-report={'result':'PASS' if not failures else 'INCOMPLETE','clevelandRecords':len(cma),'metEnumeratedIDs':len(all_ids),'metFailures':failures,'metDepartments':searches}
+report={'result':'PASS' if not failures and not cleveland_error else 'INCOMPLETE','clevelandRecords':len(cma),
+ 'clevelandError':cleveland_error,'metEnumeratedIDs':len(all_ids),'metFailures':failures,'metDepartments':searches}
 if not failures:stamp.write_text(time.strftime('%Y-%m-%d',time.gmtime()),encoding='utf8')
 REPORT.write_text(json.dumps(report,indent=2),encoding='utf8');print(json.dumps({k:v for k,v in report.items() if k!='metFailures'}|{'metFailureCount':len(failures),'metBlocked':met_blocked.is_set()}),flush=True)
 

@@ -1,6 +1,6 @@
 # Museum visual index updater
 
-The `Update museum visual index` GitHub Actions workflow runs daily at 10:43 UTC and can also be started manually. It publishes public JSON data to the separate `art-index` branch. It does not change wallpaper source files on `main`.
+The `Update museum visual index` GitHub Actions workflow runs daily at 10:43 UTC, can also be started manually, and runs when its indexing code or curated source list changes on main. It publishes public JSON data to the separate `art-index` branch. It does not change wallpaper source files on `main`.
 
 The job enumerates Cleveland painting pages and Met painting searches by department, validates museum rights and image metadata with the gallery schema, and computes real image features with CLIP ViT-B/32 and DINOv2 ViT-S/14. Unchanged cached features are reused. New or changed images are processed in the build job, using two CPU threads. No neural network runs in Wallpaper Engine.
 
@@ -11,6 +11,8 @@ The bootstrap contains 3,430 public museum records and their previously computed
 The initial complete Cleveland scan accepted 3,331 paintings out of 3,907 records. Met searches enumerated 14,423 candidates. Local access and the first GitHub job encountered HTTP 403, leaving incomplete metadata coverage. The first job successfully analyzed 45 additional works and published 3,430 indexed images. Subsequent scans pace Met requests at one per second with at most two pending workers, stop on 403/429, and resume from saved raw records. A cold complete scan can take several hours; daily runs reuse the cache. The job reports incomplete coverage when upstream collection or image analysis fails; a candidate is not described as indexed before its image has been processed. Existing valid records are retained during source failures. Build caches are saved even when a job fails.
 
 New runs reserve time before the six-hour Actions limit: metadata collection defers uncached records after about one hour, and new image work is deferred after 4.5 hours from startup. These are approximate safety budgets, not hard guarantees against slow operations or runner termination. Deferred records are reported as pending; the next scheduled run resumes from the saved cache. A cancelled or forcibly terminated runner may not complete its cache-save step.
+
+If Cleveland pagination becomes inconsistent or fails, the last complete Cleveland snapshot is retained, the error is reported, and Met collection continues independently.
 
 Run from the repository root:
 
