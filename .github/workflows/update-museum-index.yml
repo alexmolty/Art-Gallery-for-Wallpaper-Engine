@@ -1,5 +1,12 @@
 name: Update museum visual index
 on:
+  # Rebuild when the workflow or the reviewed masterpiece catalogue changes.
+  # Data commits go to art-index, so they do not recursively trigger this job.
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/update-museum-index.yml'
+      - 'tools/art-index/bootstrap/masterpieces.json'
   workflow_dispatch:
     inputs:
       verify_only:
