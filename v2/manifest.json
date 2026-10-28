@@ -1,0 +1,32 @@
+{
+  "version": 2,
+  "generatedAt": "2026-10-28T11:28:34Z",
+  "indexedCount": 11232,
+  "file": "art-index-919bfe99140137c0.json",
+  "sha256": "919bfe99140137c095610f304233a3b828f0b159113725cf32625639ad833357",
+  "bytes": 23965632,
+  "contentSha256": "51bc9c9cb34989e5b53b755fc4ff9d04dc1767106f19c11d811ab881140d8863",
+  "coverage": {
+    "collectionResult": "INCOMPLETE",
+    "enumeratedMetCandidates": 14423,
+    "metPendingMetadata": 277,
+    "imageCandidates": 11234,
+    "indexedImages": 11232,
+    "pendingImages": [
+      {
+        "id": "met-42560",
+        "error": "HTTP Error 404: Not Found; HTTP Error 404: Not Found"
+      },
+      {
+        "id": "met-45663",
+        "error": "HTTP Error 404: Not Found; HTTP Error 404: Not Found"
+      }
+    ]
+  },
+  "gzip": {
+    "file": "art-index-a6711cbbb9b7c13a.json.gz",
+    "sha256": "a6711cbbb9b7c13ab054a7f03b8dac0b973ba69d839a7edbf02f1120bf99dc38",
+    "bytes": 10521021,
+    "uncompressedBytes": 23965632
+  }
+}
