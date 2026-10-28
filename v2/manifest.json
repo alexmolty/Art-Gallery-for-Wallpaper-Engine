@@ -1,32 +1,33 @@
 {
   "version": 2,
-  "generatedAt": "2026-10-28T11:28:34Z",
+  "generatedAt": "2026-10-28T11:56:54Z",
   "indexedCount": 11232,
-  "file": "art-index-919bfe99140137c0.json",
-  "sha256": "919bfe99140137c095610f304233a3b828f0b159113725cf32625639ad833357",
-  "bytes": 23965632,
-  "contentSha256": "51bc9c9cb34989e5b53b755fc4ff9d04dc1767106f19c11d811ab881140d8863",
+  "file": "art-index-924e07e2e2e5e28c.json",
+  "sha256": "924e07e2e2e5e28c10250551781b6d5a5a45bd8387187dc63870bc0b0480f5c3",
+  "bytes": 23965725,
+  "contentSha256": "d5879a29d37acb6c4b4adff476ca3dca12afe00a6f6241d65b7bf0bfc010ee64",
   "coverage": {
     "collectionResult": "INCOMPLETE",
-    "enumeratedMetCandidates": 14423,
-    "metPendingMetadata": 277,
+    "enumeratedMetCandidates": 14422,
+    "metPendingMetadata": 276,
+    "clevelandError": "Cleveland pagination returned 3902 unique records for 3907 reported items",
     "imageCandidates": 11234,
     "indexedImages": 11232,
     "pendingImages": [
       {
-        "id": "met-42560",
+        "id": "met-45663",
         "error": "HTTP Error 404: Not Found; HTTP Error 404: Not Found"
       },
       {
-        "id": "met-45663",
+        "id": "met-42560",
         "error": "HTTP Error 404: Not Found; HTTP Error 404: Not Found"
       }
     ]
   },
   "gzip": {
-    "file": "art-index-a6711cbbb9b7c13a.json.gz",
-    "sha256": "a6711cbbb9b7c13ab054a7f03b8dac0b973ba69d839a7edbf02f1120bf99dc38",
-    "bytes": 10521021,
-    "uncompressedBytes": 23965632
+    "file": "art-index-468ec7d90e1bd1d0.json.gz",
+    "sha256": "468ec7d90e1bd1d0017ae3ecff442cb1b2d86f7b94d7738d6eaaf816eee98cff",
+    "bytes": 10521053,
+    "uncompressedBytes": 23965725
   }
 }
