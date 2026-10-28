@@ -260,5 +260,83 @@
     "imageLicense": "Public domain",
     "imageLicenseUrl": "",
     "alt": "Liberty Leading the People \u2014 Eug\u00e8ne Delacroix"
+  },
+  {
+    "id": "masterpiece-last-supper",
+    "sourceMuseum": "masterpieces",
+    "masterpiece": true,
+    "title": "The Last Supper",
+    "artist": "Leonardo da Vinci",
+    "date": "c. 1495\u20131498",
+    "dateStart": 1498,
+    "dateEnd": 1498,
+    "artistNationality": "Italy",
+    "genres": [
+      "religious"
+    ],
+    "width": 3840,
+    "height": 2088,
+    "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bb/Leonardo_da_Vinci_-_The_Last_Supper_high_res.jpg/3840px-Leonardo_da_Vinci_-_The_Last_Supper_high_res.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Leonardo_da_Vinci_-_The_Last_Supper_high_res.jpg",
+    "commonsFile": "File:Leonardo da Vinci - The Last Supper high res.jpg",
+    "commonsPageUrl": "https://commons.wikimedia.org/wiki/File:Leonardo_da_Vinci_-_The_Last_Supper_high_res.jpg",
+    "verifiedCommons": true,
+    "source": "Santa Maria delle Grazie / Wikimedia Commons",
+    "license": "Public domain",
+    "imageLicense": "Public domain",
+    "imageLicenseUrl": "",
+    "alt": "The Last Supper \u2014 Leonardo da Vinci"
+  },
+  {
+    "id": "masterpiece-wanderer",
+    "sourceMuseum": "masterpieces",
+    "masterpiece": true,
+    "title": "Wanderer above the Sea of Fog",
+    "artist": "Caspar David Friedrich",
+    "date": "c. 1818",
+    "dateStart": 1818,
+    "dateEnd": 1818,
+    "artistNationality": "Germany",
+    "genres": [
+      "landscape"
+    ],
+    "width": 3840,
+    "height": 4926,
+    "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/af/Caspar_David_Friedrich_-_Wanderer_above_the_Sea_of_Fog.jpeg/3840px-Caspar_David_Friedrich_-_Wanderer_above_the_Sea_of_Fog.jpeg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Caspar_David_Friedrich_-_Wanderer_above_the_Sea_of_Fog.jpeg",
+    "commonsFile": "File:Caspar David Friedrich - Wanderer above the Sea of Fog.jpeg",
+    "commonsPageUrl": "https://commons.wikimedia.org/wiki/File:Caspar_David_Friedrich_-_Wanderer_above_the_Sea_of_Fog.jpeg",
+    "verifiedCommons": true,
+    "source": "Hamburger Kunsthalle / Wikimedia Commons",
+    "license": "Public domain",
+    "imageLicense": "Public domain",
+    "imageLicenseUrl": "",
+    "alt": "Wanderer above the Sea of Fog \u2014 Caspar David Friedrich"
+  },
+  {
+    "id": "masterpiece-earthly-delights",
+    "sourceMuseum": "masterpieces",
+    "masterpiece": true,
+    "title": "The Garden of Earthly Delights",
+    "artist": "Hieronymus Bosch",
+    "date": "c. 1490\u20131510",
+    "dateStart": 1500,
+    "dateEnd": 1500,
+    "artistNationality": "Netherlands",
+    "genres": [
+      "history"
+    ],
+    "width": 3840,
+    "height": 1964,
+    "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e5/The_Garden_of_Earthly_Delights_by_Hieronymus_Bosch.jpg/3840px-The_Garden_of_Earthly_Delights_by_Hieronymus_Bosch.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:The_Garden_of_Earthly_Delights_by_Hieronymus_Bosch.jpg",
+    "commonsFile": "File:The Garden of Earthly Delights by Hieronymus Bosch.jpg",
+    "commonsPageUrl": "https://commons.wikimedia.org/wiki/File:The_Garden_of_Earthly_Delights_by_Hieronymus_Bosch.jpg",
+    "verifiedCommons": true,
+    "source": "Museo del Prado / Wikimedia Commons",
+    "license": "Public domain",
+    "imageLicense": "Public domain",
+    "imageLicenseUrl": "",
+    "alt": "The Garden of Earthly Delights \u2014 Hieronymus Bosch"
   }
 ]
