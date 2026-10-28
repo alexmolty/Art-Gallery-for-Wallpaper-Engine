@@ -184,32 +184,6 @@
     "alt": "The Birth of Venus \u2014 Sandro Botticelli"
   },
   {
-    "id": "masterpiece-scream",
-    "sourceMuseum": "masterpieces",
-    "masterpiece": true,
-    "title": "The Scream",
-    "artist": "Edvard Munch",
-    "date": "1893",
-    "dateStart": 1893,
-    "dateEnd": 1893,
-    "artistNationality": "Norway",
-    "genres": [
-      "portrait"
-    ],
-    "width": 3840,
-    "height": 4749,
-    "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/65/Edvard_Munch_-_The_Scream.jpg/3840px-Edvard_Munch_-_The_Scream.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "pageUrl": "https://commons.wikimedia.org/wiki/File:Edvard_Munch_-_The_Scream.jpg",
-    "commonsFile": "File:Edvard Munch - The Scream.jpg",
-    "commonsPageUrl": "https://commons.wikimedia.org/wiki/File:Edvard_Munch_-_The_Scream.jpg",
-    "verifiedCommons": true,
-    "source": "National Museum of Norway / Wikimedia Commons",
-    "license": "Public domain",
-    "imageLicense": "Public domain",
-    "imageLicenseUrl": "",
-    "alt": "The Scream \u2014 Edvard Munch"
-  },
-  {
     "id": "masterpiece-creation-adam",
     "sourceMuseum": "masterpieces",
     "masterpiece": true,
