@@ -1,33 +1,33 @@
 {
   "version": 2,
-  "generatedAt": "2026-10-30T17:12:08Z",
-  "indexedCount": 11232,
-  "file": "art-index-091b751505a856aa.json",
-  "sha256": "091b751505a856aa3f32d6ff3b7e54eb9dc58df41d1e8aeb98469ac8fd8a0377",
-  "bytes": 23966497,
-  "contentSha256": "55d6210bb48904f6cc829df962e0c918639fd7ba94bf1da9ecca407a5694df23",
+  "generatedAt": "2026-10-31T16:14:41Z",
+  "indexedCount": 11233,
+  "file": "art-index-76791bda700e7f83.json",
+  "sha256": "76791bda700e7f83a4929b75b2245d465580d0d3bb386caa5fea600d2bda5c8e",
+  "bytes": 23968769,
+  "contentSha256": "bba24643826f0cff4e08cccc4e27164eed498afc0e0befc3d218a9b8dacf8373",
   "coverage": {
     "collectionResult": "INCOMPLETE",
-    "enumeratedMetCandidates": 14422,
+    "enumeratedMetCandidates": 14423,
     "metPendingMetadata": 276,
-    "clevelandError": "",
-    "imageCandidates": 11234,
-    "indexedImages": 11232,
+    "clevelandError": "Cleveland pagination returned 3902 unique records for 3907 reported items",
+    "imageCandidates": 11235,
+    "indexedImages": 11233,
     "pendingImages": [
       {
-        "id": "met-42560",
+        "id": "met-45663",
         "error": "HTTP Error 404: Not Found; HTTP Error 404: Not Found"
       },
       {
-        "id": "met-45663",
+        "id": "met-42560",
         "error": "HTTP Error 404: Not Found; HTTP Error 404: Not Found"
       }
     ]
   },
   "gzip": {
-    "file": "art-index-6385d20b7e006d2e.json.gz",
-    "sha256": "6385d20b7e006d2ebc432b73c4e108bf6a029ef914d9ea8644f9afd579ee3983",
-    "bytes": 10521324,
-    "uncompressedBytes": 23966497
+    "file": "art-index-0181be8bb6a0b671.json.gz",
+    "sha256": "0181be8bb6a0b671379102f71e32fc3f91d66a8a4995f63433e8c594a6c8c30f",
+    "bytes": 10522306,
+    "uncompressedBytes": 23968769
   }
 }
