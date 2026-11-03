@@ -1,11 +1,11 @@
 {
   "version": 2,
-  "generatedAt": "2026-11-02T20:52:54Z",
+  "generatedAt": "2026-11-03T18:26:19Z",
   "indexedCount": 11233,
-  "file": "art-index-3e58b10c87ac922e.json",
-  "sha256": "3e58b10c87ac922e707f083afa56573d11e4f1bc77f1e3a7db50ddaef65924e4",
+  "file": "art-index-ee43c6e121ca7cf4.json",
+  "sha256": "ee43c6e121ca7cf4e7c11973fdcfd3d84b335ba974aeb2305797723e2ec7b8d0",
   "bytes": 23968712,
-  "contentSha256": "1d40c815303e8395430c621a6044d6806bc89577781b83ef07b6efb39a780f97",
+  "contentSha256": "42742cface995d6fe7bcb9f286df864222f0d5e3a6359ad6147465e81a6ba159",
   "coverage": {
     "collectionResult": "INCOMPLETE",
     "enumeratedMetCandidates": 14423,
@@ -15,19 +15,19 @@
     "indexedImages": 11233,
     "pendingImages": [
       {
-        "id": "met-42560",
+        "id": "met-45663",
         "error": "HTTP Error 404: Not Found; HTTP Error 404: Not Found"
       },
       {
-        "id": "met-45663",
+        "id": "met-42560",
         "error": "HTTP Error 404: Not Found; HTTP Error 404: Not Found"
       }
     ]
   },
   "gzip": {
-    "file": "art-index-ecb58f74010fd824.json.gz",
-    "sha256": "ecb58f74010fd824ca1902f99ce315260fd5b12abc9184ddc0e77fd652331bd9",
-    "bytes": 10522306,
+    "file": "art-index-23d8eb9521280e31.json.gz",
+    "sha256": "23d8eb9521280e31e316fbbb8f3c65584eacfe5b4a3474701182cc3c57e85e99",
+    "bytes": 10522309,
     "uncompressedBytes": 23968712
   }
 }
