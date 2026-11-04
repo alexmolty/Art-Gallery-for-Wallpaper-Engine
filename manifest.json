@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-03T18:26:19Z",
+  "generatedAt": "2026-11-04T18:36:02Z",
   "indexedCount": 11220,
-  "file": "art-index-42aa5725b9047c4d.json",
-  "sha256": "42aa5725b9047c4da32fdab646706fdb987ef44149090692ceceafbe6dc30b84",
-  "bytes": 30739164,
-  "contentSha256": "430cf1bfc5ef25c23a9b72acd52d309f73165ca034e5f506fc6699e4c0fe14c6",
+  "file": "art-index-0d19b5f022778f45.json",
+  "sha256": "0d19b5f022778f457e9517106db670e247f21760653959fef84f63ae43185f79",
+  "bytes": 30739310,
+  "contentSha256": "c47f7a2e24dc538693d2cc1240aa9f122181344a207e1aac889a6a87ff91f91d",
   "coverage": {
     "collectionResult": "INCOMPLETE",
     "enumeratedMetCandidates": 14423,
@@ -26,9 +26,9 @@
     "curatedWorksExcluded": 13
   },
   "gzip": {
-    "file": "art-index-5e69670c584fe758.json.gz",
-    "sha256": "5e69670c584fe758b0a33436a6a988676a2a63154612ee65b0a0d7a67687c495",
-    "bytes": 6121119,
-    "uncompressedBytes": 30739164
+    "file": "art-index-8f08606f732b2eb7.json.gz",
+    "sha256": "8f08606f732b2eb7a2b6b5a0487e47ba00dae6fba9dee2cf4d50fdd8ad26a772",
+    "bytes": 6121178,
+    "uncompressedBytes": 30739310
   }
 }
