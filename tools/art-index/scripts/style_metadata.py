@@ -1,8 +1,11 @@
 """Enrich artwork styles from museum-linked work and artist identities."""
 import collections
+import csv
+import hashlib
 import json
 import re
 import time
+import unicodedata
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -26,6 +29,108 @@ UNCERTAIN_ARTIST = re.compile(r'^(?:unknown|anonymous|unidentified|attributed to
 QID = re.compile(r'Q[1-9][0-9]*')
 DAY = 86400
 USER_AGENT = 'ClassicalGallery-StyleIndex/1.0 (https://github.com/alexmolty/Classical-Gallery)'
+
+
+# Pinned metadata snapshot from Yangyu Wang's MIT-licensed WikiArt metadata
+# project. Only movement labels and links for matched gallery records are published.
+WIKIART_SNAPSHOT = 'https://raw.githubusercontent.com/yangyuwang/wikiart_metadata/71e08f62af3740031c8c87928f954c48a9fb6fef/'
+WIKIART_FILES = {
+    'works': ('artwork_data/artwork_data_merged.csv', 'aa195b87e7bff6e87b8c1f02141f2f25a55ef9f75f8659ea99e281955702a1be', 80_000_000),
+    'artists': ('artist_data/artist_data_new.csv', '1c5deed3380d7ea02e06023fbd4092ac5262876ba51b66f1bf90b0d0242a6f77', 1_000_000),
+}
+
+
+def wikiart_file(directory, name, allow_network, deadline):
+    url, digest, limit = WIKIART_FILES[name]
+    path = directory / f'wikiart-{name}-{digest[:12]}.csv'
+    if path.exists():
+        return path
+    if not allow_network or time.time() >= deadline:
+        return None
+    request = urllib.request.Request(WIKIART_SNAPSHOT + url, headers={'User-Agent': USER_AGENT})
+    with urllib.request.urlopen(request, timeout=min(25, deadline - time.time())) as response:
+        body = response.read(limit + 1)
+    if len(body) > limit or hashlib.sha256(body).hexdigest() != digest:
+        raise ValueError(f'Invalid WikiArt {name} snapshot')
+    temp = path.with_suffix('.tmp')
+    temp.write_bytes(body)
+    temp.replace(path)
+    return path
+
+
+def identity_text(value):
+    folded = unicodedata.normalize('NFKD', (value or '').casefold())
+    return ' '.join(re.findall(r'[^\W_]+', ''.join(c for c in folded if unicodedata.category(c) != 'Mn')))
+
+
+def simple_year(value):
+    match = re.fullmatch(r'([1-2]\d{3})(?:\.0)?', (value or '').strip())
+    return int(match[1]) if match else None
+
+
+def year_in_date(value):
+    years = re.findall(r'(?<!\d)([1-2]\d{3})(?!\d)', value or '')
+    return int(years[0]) if len(years) == 1 else None
+
+
+def wikiart_styles(value):
+    return {label.strip() for label in (value or '').split('|')
+            if 1 <= len(label.strip()) <= 200 and label.strip().lower() not in ('nan', 'unknown', 'n/a', 'other')}
+
+
+def work_dates(record):
+    dates = [record.get(key) for key in ('dateStart', 'dateEnd')]
+    return sorted(value for value in dates if type(value) is int)
+
+
+def wikiart_work_matches(path, records, inventory):
+    candidates = collections.defaultdict(list)
+    for record in records:
+        if artist_key(inventory.get(str(record['id']), {})) and work_dates(record):
+            candidates[identity_text(record['artist']), identity_text(record['title'])].append(record)
+    matches = collections.defaultdict(lambda: collections.defaultdict(set))
+    with path.open(encoding='utf-8-sig', newline='') as file:
+        for row in csv.DictReader(file):
+            records = candidates.get((identity_text(row['Artist_name']), identity_text(row['Artwork Name'])))
+            if not records:
+                continue
+            y = simple_year(row['Year']) or simple_year(row['Date'])
+            url = row['Link']
+            styles = wikiart_styles(row['Style'])
+            if not y or not styles or not re.fullmatch(r'https://www\.wikiart\.org/en/[^/?#]+/[^/?#]+', url):
+                continue
+            dated = [record for record in records if work_dates(record)[0] - 2 <= y <= work_dates(record)[-1] + 2]
+            if len(dated) == 1:
+                matches[str(dated[0]['id'])][url].update(styles)
+    return {id: (url, sorted(styles)) for id, found in matches.items() if len(found) == 1
+            for url, styles in found.items()}
+
+
+def wikiart_artist_matches(path, records, inventory):
+    authors = collections.defaultdict(dict)
+    with path.open(encoding='utf-8-sig', newline='') as file:
+        for row in csv.DictReader(file):
+            start, end = year_in_date(row['Birth Date']), year_in_date(row['Death Date'])
+            styles = wikiart_styles(row['Art Movement'])
+            countries = {identity_text(value) for value in re.split(r'[,|;/]', row['Nationality']) if value.strip()}
+            slug = row['url_name']
+            if start and end and styles and countries and re.fullmatch(r'[\w-]+', slug):
+                authors[identity_text(row['name'])][slug] = (start, end, styles, countries)
+    matches = {}
+    for record in records:
+        if not artist_key(inventory.get(str(record['id']), {})):
+            continue
+        dates = work_dates(record)
+        if not dates:
+            continue
+        known = {identity_text(value) for value in [record.get('artistNationality') or '', *(record.get('artistNationalities') or [])] if value.strip()}
+        candidates = [(slug, styles) for slug, (birth, death, styles, countries)
+                      in authors.get(identity_text(record['artist']), {}).items()
+                      if countries & known and birth + 12 <= dates[0] and dates[-1] <= death]
+        if len(candidates) == 1:
+            slug, styles = candidates[0]
+            matches[str(record['id'])] = ('https://www.wikiart.org/en/' + slug, sorted(styles))
+    return matches
 
 
 def year(snak):
@@ -227,6 +332,14 @@ def enrich_styles(payload, inventory, directory, previous, allow_network, deadli
     indexed = {str(art['id']): art for art in inventory}
     old = {str(art['id']): art for art in previous.get('records', [])}
     resolved = resolve_ids(inventory)
+    wikiart = {}
+    for name, match in [('works', wikiart_work_matches), ('artists', wikiart_artist_matches)]:
+        try:
+            source = wikiart_file(directory, name, allow_network, deadline)
+            if source:
+                wikiart[name] = match(source, payload['records'], indexed)
+        except (OSError, ValueError, KeyError, csv.Error) as error:
+            print(f'WIKIART_{name.upper()}_DEFERRED {error}', flush=True)
     counts = collections.Counter(resolved.values())
     pending = [qid for qid, _ in counts.most_common() if cache.get(qid, {}).get('schema') != 2
                or now - cache.get(qid, {}).get('checkedAt', 0) > 60 * DAY]
@@ -260,6 +373,7 @@ def enrich_styles(payload, inventory, directory, previous, allow_network, deadli
         label_path.write_text(json.dumps(labels, separators=(',', ':')), encoding='utf8')
 
     work_tagged = artist_tagged = documented = 0
+    wikiart_work_tagged = wikiart_artist_tagged = 0
     for record in payload['records']:
         id = str(record['id'])
         art = indexed.get(id, {})
@@ -267,28 +381,31 @@ def enrich_styles(payload, inventory, directory, previous, allow_network, deadli
             documented += 1
             continue
         earlier = old.get(id, {})
+        same_work = all(earlier.get(key) == record.get(key) for key in ('title', 'artist', 'dateStart', 'dateEnd'))
         match = works.get('entries', {}).get(museum_work_key(record))
         if match:
             record['workMovements'] = match['styles']
             record['workStyleWikidata'] = match['qid']
-        elif not works.get('checkedAt') and earlier.get('title') == record.get('title') and earlier.get('artist') == record.get('artist'):
-            if earlier.get('workMovements') and earlier.get('workStyleWikidata'):
-                record['workMovements'] = earlier['workMovements']
-                record['workStyleWikidata'] = earlier['workStyleWikidata']
+        elif not works.get('checkedAt') and same_work and earlier.get('workMovements') and earlier.get('workStyleWikidata'):
+            record['workMovements'] = earlier['workMovements']
+            record['workStyleWikidata'] = earlier['workStyleWikidata']
         if record.get('workMovements'):
             work_tagged += 1
+            continue
+        work_reference = wikiart.get('works', {}).get(id)
+        if 'works' not in wikiart and same_work and earlier.get('workStyleWikiArt') and earlier.get('workMovements'):
+            work_reference = (earlier['workStyleWikiArt'], earlier['workMovements'])
+        if work_reference:
+            record['workStyleWikiArt'], record['workMovements'] = work_reference
+            wikiart_work_tagged += 1
             continue
         qid = resolved.get(id)
         if not qid and artist_key(art) and record.get('artist') == earlier.get('artist'):
             candidate = earlier.get('artistStyleWikidata', '')
             qid = candidate if isinstance(candidate, str) and QID.fullmatch(candidate) else None
-        if not qid:
-            continue
         if qid in cache:
             styles = work_styles(cache[qid]['claims'], record)
-        elif earlier.get('artistStyleWikidata') == qid and earlier.get('artist') == record.get('artist') and all(
-            earlier.get(key) == record.get(key) for key in ('dateStart', 'dateEnd')
-        ):
+        elif qid and earlier.get('artistStyleWikidata') == qid and same_work:
             styles = earlier.get('artistMovements', [])
         else:
             styles = []
@@ -296,11 +413,19 @@ def enrich_styles(payload, inventory, directory, previous, allow_network, deadli
             record['artistMovements'] = styles
             record['artistStyleWikidata'] = qid
             artist_tagged += 1
+            continue
+        artist_reference = wikiart.get('artists', {}).get(id)
+        if 'artists' not in wikiart and same_work and earlier.get('artistStyleWikiArt') and earlier.get('artistMovements'):
+            artist_reference = (earlier['artistStyleWikiArt'], earlier['artistMovements'])
+        if artist_reference:
+            record['artistStyleWikiArt'], record['artistMovements'] = artist_reference
+            wikiart_artist_tagged += 1
+    tagged = documented + work_tagged + artist_tagged + wikiart_work_tagged + wikiart_artist_tagged
     return {
         'workStylesIndexed': work_tagged, 'artistStylesIndexed': artist_tagged,
         'documentedStylesIndexed': documented,
-        'styleTaggedWorks': documented + work_tagged + artist_tagged,
-        'styleUntaggedWorks': len(payload['records']) - documented - work_tagged - artist_tagged,
+        'wikiArtWorkStylesIndexed': wikiart_work_tagged, 'wikiArtArtistStylesIndexed': wikiart_artist_tagged,
+        'styleTaggedWorks': tagged, 'styleUntaggedWorks': len(payload['records']) - tagged,
         'styleResolvedArtistIds': len(counts),
         'stylePendingArtistProfiles': sum(cache.get(qid, {}).get('schema') != 2 for qid in counts),
         'styleArtistLookupFailures': failures,
