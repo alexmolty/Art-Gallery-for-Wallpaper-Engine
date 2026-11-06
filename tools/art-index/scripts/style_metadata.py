@@ -3,6 +3,7 @@ import collections
 import json
 import re
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 
@@ -40,13 +41,19 @@ def bounds(qualifiers, property_id, choose):
     return choose(years) if years else None
 
 
-def profile(qid, entity):
+def movement_claims(entity):
+    return [claim for claim in entity.get('claims', {}).get('P135', []) if claim.get('rank') != 'deprecated']
+
+
+def movement_id(claim):
+    item = claim.get('mainsnak', {}).get('datavalue', {}).get('value', {})
+    return item.get('id', '') if isinstance(item, dict) else ''
+
+
+def profile(qid, entity, labels):
     result = []
-    for claim in entity.get('claims', {}).get('P135', []):
-        if claim.get('rank') == 'deprecated':
-            continue
-        item = claim.get('mainsnak', {}).get('datavalue', {}).get('value', {})
-        movement = MOVEMENTS.get(item.get('id')) if isinstance(item, dict) else None
+    for claim in movement_claims(entity):
+        movement = MOVEMENTS.get(movement_id(claim)) or labels.get(movement_id(claim))
         if not movement:
             continue
         qualifiers = claim.get('qualifiers', {})
@@ -71,28 +78,52 @@ def request_json(endpoint, parameters, timeout):
     return json.loads(body)
 
 
-def fetch_profiles(ids):
-    data = request_json('https://www.wikidata.org/w/api.php', {
-        'action': 'wbgetentities', 'format': 'json', 'props': 'claims',
+def fetch_entities(ids, props, deadline):
+    parameters = {
+        'action': 'wbgetentities', 'format': 'json', 'props': props,
         'ids': '|'.join(ids), 'maxlag': 5,
-    }, 12)
-    if not isinstance(data.get('entities'), dict):
-        raise ValueError('Wikidata returned no entities')
-    return data['entities']
+    }
+    if props == 'labels':
+        parameters['languages'] = 'en'
+    for attempt in range(3):
+        remaining = deadline - time.time()
+        if remaining <= 0:
+            raise TimeoutError('Wikidata lookup budget expired')
+        try:
+            data = request_json('https://www.wikidata.org/w/api.php', parameters, min(12, remaining))
+            if isinstance(data.get('entities'), dict):
+                return data['entities']
+            error = data.get('error', {})
+            code = error.get('code', 'missing-entities')
+            problem = ValueError(f'Wikidata API {code}: {str(error.get("info", ""))[:200]}')
+            if code not in ('maxlag', 'ratelimited', 'readonly', 'missing-entities'):
+                raise problem
+        except urllib.error.HTTPError as error:
+            if error.code not in (429, 500, 502, 503, 504):
+                raise
+            problem = error
+        except (TimeoutError, urllib.error.URLError) as error:
+            problem = error
+        delay = 2 ** (attempt + 1)
+        if attempt == 2 or time.time() + delay >= deadline:
+            raise problem
+        time.sleep(delay)
 
 
-def fetch_work_styles():
-    movements = ' '.join('wd:' + item for item in MOVEMENTS)
+def fetch_work_styles(timeout, expanded=True):
+    whitelist = '' if expanded else 'VALUES ?movement { ' + ' '.join('wd:' + item for item in MOVEMENTS) + ' }'
+    labels = 'OPTIONAL { ?movement rdfs:label ?label . FILTER(LANG(?label) = "en") }' if expanded else ''
     query = f"""
-    SELECT ?museum ?id ?item ?movement WHERE {{
-      VALUES ?movement {{ {movements} }}
-      ?item wdt:P135 ?movement .
+    SELECT ?museum ?id ?item ?movement ?label WHERE {{
+      {whitelist}
       {{ ?item wdt:P3634 ?id . BIND("met" AS ?museum) }}
       UNION {{ ?item wdt:P11110 ?id . BIND("cleveland" AS ?museum) }}
       UNION {{ ?item wdt:P4610 ?id . BIND("chicago" AS ?museum) }}
+      ?item wdt:P135 ?movement .
+      {labels}
     }}
     """
-    data = request_json('https://query.wikidata.org/sparql', {'query': query, 'format': 'json'}, 25)
+    data = request_json('https://query.wikidata.org/sparql', {'query': query, 'format': 'json'}, timeout)
     rows = data.get('results', {}).get('bindings')
     if not isinstance(rows, list) or not rows:
         raise ValueError('Wikidata returned no work styles')
@@ -100,7 +131,8 @@ def fetch_work_styles():
     for row in rows:
         key = row['museum']['value'] + ':' + row['id']['value']
         item = row['item']['value'].rsplit('/', 1)[-1]
-        movement = MOVEMENTS.get(row['movement']['value'].rsplit('/', 1)[-1])
+        movement_id_value = row['movement']['value'].rsplit('/', 1)[-1]
+        movement = MOVEMENTS.get(movement_id_value) or row.get('label', {}).get('value', '').strip()
         if QID.fullmatch(item) and movement:
             entries[key][item].add(movement)
     return {key: {'qid': item, 'styles': sorted(styles)}
@@ -178,39 +210,61 @@ def enrich_styles(payload, inventory, directory, previous, allow_network, deadli
     works_path = directory / 'work-style-profiles.json'
     works = read_cache(works_path)
     now = int(time.time())
-    if allow_network and time.time() < deadline and now - works.get('checkedAt', 0) > 7 * DAY:
+    refresh_age = 7 * DAY if works.get('expanded') else DAY
+    if allow_network and time.time() < deadline and (not works.get('expandedAttemptAt') or now - works['expandedAttemptAt'] > refresh_age):
         try:
-            works = {'checkedAt': now, 'entries': fetch_work_styles()}
-            works_path.write_text(json.dumps(works, separators=(',', ':')), encoding='utf8')
+            works = {'checkedAt': now, 'expandedAttemptAt': now, 'expanded': True,
+                     'entries': fetch_work_styles(min(25, deadline - time.time()))}
         except (OSError, ValueError, KeyError) as error:
-            print('WORK_STYLE_LOOKUP_DEFERRED ' + str(error), flush=True)
+            print('EXPANDED_WORK_STYLE_LOOKUP_DEFERRED ' + str(error), flush=True)
+            works['expandedAttemptAt'] = now
+            if not works.get('entries') and time.time() < deadline:
+                try:
+                    works.update(checkedAt=now, entries=fetch_work_styles(min(25, deadline - time.time()), expanded=False))
+                except (OSError, ValueError, KeyError) as fallback_error:
+                    print('WORK_STYLE_LOOKUP_DEFERRED ' + str(fallback_error), flush=True)
+        works_path.write_text(json.dumps(works, separators=(',', ':')), encoding='utf8')
     indexed = {str(art['id']): art for art in inventory}
     old = {str(art['id']): art for art in previous.get('records', [])}
     resolved = resolve_ids(inventory)
     counts = collections.Counter(resolved.values())
-    pending = [qid for qid, _ in counts.most_common() if now - cache.get(qid, {}).get('checkedAt', 0) > 60 * DAY]
+    pending = [qid for qid, _ in counts.most_common() if cache.get(qid, {}).get('schema') != 2
+               or now - cache.get(qid, {}).get('checkedAt', 0) > 60 * DAY]
+    label_path = directory / 'movement-labels.json'
+    labels = read_cache(label_path)
+    failures = 0
     if allow_network:
         for offset in range(0, min(len(pending), 1000), 25):
             if time.time() >= deadline:
                 break
             ids = pending[offset:offset + 25]
             try:
-                entities = fetch_profiles(ids)
+                entities = fetch_entities(ids, 'claims', deadline)
+                needed = sorted({qid for entity in entities.values()
+                                 for claim in movement_claims(entity) if (qid := movement_id(claim))
+                                 and QID.fullmatch(qid) and qid not in labels and qid not in MOVEMENTS})
+                for start in range(0, len(needed), 25):
+                    movement_entities = fetch_entities(needed[start:start + 25], 'labels', deadline)
+                    for qid, entity in movement_entities.items():
+                        labels[qid] = entity.get('labels', {}).get('en', {}).get('value', '').strip()
             except (OSError, ValueError) as error:
+                failures += 1
                 print('ARTIST_STYLE_LOOKUP_DEFERRED ' + str(error), flush=True)
-                break
+                continue
             for qid in ids:
                 if qid in entities and 'missing' not in entities[qid]:
-                    cache[qid] = {'checkedAt': now, 'claims': profile(qid, entities[qid])}
+                    cache[qid] = {'schema': 2, 'checkedAt': now, 'claims': profile(qid, entities[qid], labels)}
             if offset + 25 < min(len(pending), 1000):
                 time.sleep(.5)
         cache_path.write_text(json.dumps(cache, separators=(',', ':')), encoding='utf8')
+        label_path.write_text(json.dumps(labels, separators=(',', ':')), encoding='utf8')
 
-    work_tagged = artist_tagged = 0
+    work_tagged = artist_tagged = documented = 0
     for record in payload['records']:
         id = str(record['id'])
         art = indexed.get(id, {})
         if art.get('hasDocumentedStyle'):
+            documented += 1
             continue
         earlier = old.get(id, {})
         match = works.get('entries', {}).get(museum_work_key(record))
@@ -242,4 +296,12 @@ def enrich_styles(payload, inventory, directory, previous, allow_network, deadli
             record['artistMovements'] = styles
             record['artistStyleWikidata'] = qid
             artist_tagged += 1
-    return {'workStylesIndexed': work_tagged, 'artistStylesIndexed': artist_tagged}
+    return {
+        'workStylesIndexed': work_tagged, 'artistStylesIndexed': artist_tagged,
+        'documentedStylesIndexed': documented,
+        'styleTaggedWorks': documented + work_tagged + artist_tagged,
+        'styleUntaggedWorks': len(payload['records']) - documented - work_tagged - artist_tagged,
+        'styleResolvedArtistIds': len(counts),
+        'stylePendingArtistProfiles': sum(cache.get(qid, {}).get('schema') != 2 for qid in counts),
+        'styleArtistLookupFailures': failures,
+    }
