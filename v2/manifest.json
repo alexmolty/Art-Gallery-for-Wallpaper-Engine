@@ -1,16 +1,16 @@
 {
   "version": 2,
-  "generatedAt": "2026-11-06T18:47:42Z",
+  "generatedAt": "2026-11-06T22:27:11Z",
   "indexedCount": 11234,
-  "file": "art-index-260337e570814f50.json",
-  "sha256": "260337e570814f500e87bdaad3fb79c194a7b5a638b1c8f31b6aaa8d93d213f7",
-  "bytes": 24143625,
-  "contentSha256": "b3518778b161058c7142164bd88ba189c7ceefbd6247f92df1b1cc4c3945f0fa",
+  "file": "art-index-323a0e0a0050eee6.json",
+  "sha256": "323a0e0a0050eee6c01867b8082204fc12600a393b3b76741c572e732d7ddbe5",
+  "bytes": 24156976,
+  "contentSha256": "54d580b1528d21ca595f2b6d872819e576ab1270bdd12938e0397ae6090c8515",
   "coverage": {
     "collectionResult": "INCOMPLETE",
     "enumeratedMetCandidates": 14425,
     "metPendingMetadata": 277,
-    "clevelandError": "",
+    "clevelandError": "Cleveland pagination returned 3902 unique records for 3907 reported items",
     "imageCandidates": 11236,
     "indexedImages": 11234,
     "pendingImages": [
@@ -23,12 +23,14 @@
         "error": "HTTP Error 404: Not Found; HTTP Error 404: Not Found"
       }
     ],
-    "brightnessIndexed": 8376
+    "brightnessIndexed": 8888,
+    "workStylesIndexed": 43,
+    "artistStylesIndexed": 0
   },
   "gzip": {
-    "file": "art-index-a2ecac7739fd007b.json.gz",
-    "sha256": "a2ecac7739fd007b8abb2e5614ef169e11fa16c7dba0062d80b26b288e2e7a8d",
-    "bytes": 10551690,
-    "uncompressedBytes": 24143625
+    "file": "art-index-eff4914791c73128.json.gz",
+    "sha256": "eff4914791c73128023790b7c296b433e898f9ffc162dfd188d0971c34b9d0e6",
+    "bytes": 10554375,
+    "uncompressedBytes": 24156976
   }
 }
