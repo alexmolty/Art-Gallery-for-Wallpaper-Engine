@@ -1,11 +1,11 @@
 {
   "version": 2,
-  "generatedAt": "2026-11-06T22:27:11Z",
+  "generatedAt": "2026-11-06T23:25:46Z",
   "indexedCount": 11234,
-  "file": "art-index-323a0e0a0050eee6.json",
-  "sha256": "323a0e0a0050eee6c01867b8082204fc12600a393b3b76741c572e732d7ddbe5",
-  "bytes": 24156976,
-  "contentSha256": "54d580b1528d21ca595f2b6d872819e576ab1270bdd12938e0397ae6090c8515",
+  "file": "art-index-c7de00f8e0652d21.json",
+  "sha256": "c7de00f8e0652d21803bc0e8093fab2446426857eff54d3762886cb15b4f7e20",
+  "bytes": 24188102,
+  "contentSha256": "1efbaf759c7aabb4f7ebe2855e624f886ef3182b3e32b9877ac206e272242340",
   "coverage": {
     "collectionResult": "INCOMPLETE",
     "enumeratedMetCandidates": 14425,
@@ -15,22 +15,28 @@
     "indexedImages": 11234,
     "pendingImages": [
       {
-        "id": "met-42560",
+        "id": "met-45663",
         "error": "HTTP Error 404: Not Found; HTTP Error 404: Not Found"
       },
       {
-        "id": "met-45663",
+        "id": "met-42560",
         "error": "HTTP Error 404: Not Found; HTTP Error 404: Not Found"
       }
     ],
-    "brightnessIndexed": 8888,
-    "workStylesIndexed": 43,
-    "artistStylesIndexed": 0
+    "brightnessIndexed": 9400,
+    "workStylesIndexed": 321,
+    "artistStylesIndexed": 5,
+    "documentedStylesIndexed": 144,
+    "styleTaggedWorks": 470,
+    "styleUntaggedWorks": 10764,
+    "styleResolvedArtistIds": 1813,
+    "stylePendingArtistProfiles": 1763,
+    "styleArtistLookupFailures": 38
   },
   "gzip": {
-    "file": "art-index-eff4914791c73128.json.gz",
-    "sha256": "eff4914791c73128023790b7c296b433e898f9ffc162dfd188d0971c34b9d0e6",
-    "bytes": 10554375,
-    "uncompressedBytes": 24156976
+    "file": "art-index-0d8baa1be4793723.json.gz",
+    "sha256": "0d8baa1be47937232299f9bb6e7b82781a51c501b9cd60cba8b388e2e09eb517",
+    "bytes": 10560233,
+    "uncompressedBytes": 24188102
   }
 }
