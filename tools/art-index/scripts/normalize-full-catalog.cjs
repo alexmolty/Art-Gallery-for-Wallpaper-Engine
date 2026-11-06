@@ -6,6 +6,7 @@ const original=JSON.parse(fs.readFileSync(path.join(here,'gallery-records.json')
 const byId=new Map(original.map(art=>[String(art.id),art]));
 for(const id of byId.keys())if(id.startsWith('cma-'))byId.delete(id);
 const previews=new Map(),rejected={cleveland:0,met:0};
+const artistReferences = new Map();
 const cma=JSON.parse(fs.readFileSync(path.join(here,'full-cleveland.json'),'utf8'));
 for(const record of cma){
  const art=window.MuseumCatalog.normalize('cleveland',record);
@@ -18,6 +19,8 @@ for(const file of metFiles){
  const art=window.MuseumCatalog.normalize('met',record);
  if(!art){rejected.met++;byId.delete('met-'+record.objectID);continue;}
  byId.set(String(art.id),C.mergeArtworkMetadata(byId.get(String(art.id)),art));
+ const reference = String(record.artistWikidata_URL || '').match(/^https?:\/\/(?:www\.)?wikidata\.org\/(?:wiki|entity)\/(Q[1-9]\d*)\/?$/i);
+ if (reference) artistReferences.set(String(art.id), reference[1].toUpperCase());
  previews.set(String(art.id),record.primaryImageSmall||record.primaryImage);
 }
 const originalPreviews=new Map(JSON.parse(fs.readFileSync(path.join(here,'catalog.json'),'utf8')).map(a=>[a.id,a]));
@@ -49,6 +52,9 @@ const inventory=[...byId.values()].filter(a=>C.eligible(a,C.settings({}))).map(a
  id:String(art.id),title:art.title,artist:art.artist,artistKey:C.artistKey(art.artist),pageUrl:art.pageUrl,imageUrl:art.imageUrl,
  previewUrl:previews.get(String(art.id))||originalPreviews.get(String(art.id))?.previewUrl||art.imageUrl,
  ...(originalPreviews.get(String(art.id))?.localPath?{localPath:originalPreviews.get(String(art.id)).localPath}:{}),
+ artistWikidataId: artistReferences.get(String(art.id)),
+ artistCountries: [...new Set([art.artistNationality, ...(art.artistNationalities || [])].flatMap(C.nationalityOriginsFor))],
+ hasDocumentedStyle: C.movementsFor(art).length > 0,
  metadata:art
 }));
 fs.writeFileSync(path.join(here,'full-catalog.json'),JSON.stringify(inventory));

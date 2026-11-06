@@ -14,7 +14,7 @@
   const FIELDS = 'id,title,image_id,artist_title,artist_display,date_display,date_start,date_end,style_titles,subject_titles,is_public_domain,artwork_type_id,thumbnail';
   const clamp = (n, min, max, fallback) => Number.isFinite(Number(n)) ? Math.min(max, Math.max(min, Number(n))) : fallback;
   const GENRES = ['portrait', 'landscape', 'still-life', 'seascape', 'genre', 'religious', 'history', 'animals'];
-  const MOVEMENTS = ['renaissance', 'baroque', 'rococo', 'neoclassicism', 'romanticism', 'realism', 'impressionism', 'post-impressionism', 'symbolism'];
+  const MOVEMENTS = ['renaissance', 'baroque', 'rococo', 'neoclassicism', 'romanticism', 'realism', 'impressionism', 'neo-impressionism', 'post-impressionism', 'symbolism'];
   const PERIODS = [
     { id: 'medieval', label: 'Before 1400', from: null, to: 1399 },
     { id: 'renaissance', label: '1400–1599', from: 1400, to: 1599 },
@@ -424,8 +424,8 @@
     const terms = { renaissance: /\brenaissance\b/, baroque: /\bbaroque\b/, rococo: /\brococo\b/,
       neoclassicism: /\bneo[- ]?classic(?:ism|al)\b/, romanticism: /\bromantic(?:ism)?\b/,
       realism: /\brealism\b|\brealist\b/, impressionism: /(?:^|[^a-z-])impressionis[mt]\b/,
-      'post-impressionism': /\bpost[- ]impressionis[mt]\b/, symbolism: /\bsymbolis[mt]\b/ };
-    for (const key of MOVEMENTS) if (terms[key].test(key === 'impressionism' ? text.replace(/post[- ]impressionis[mt]/g, '') : text)) result.add(key);
+      'neo-impressionism': /\bneo[- ]impressionis[mt]\b/, 'post-impressionism': /\bpost[- ]impressionis[mt]\b/, symbolism: /\bsymbolis[mt]\b/ };
+    for (const key of MOVEMENTS) if (terms[key].test(key === 'impressionism' ? text.replace(/(?:neo|post)[- ]impressionis[mt]/g, '') : text)) result.add(key);
     return [...result];
   }
   function matchesFilters(art, options) {

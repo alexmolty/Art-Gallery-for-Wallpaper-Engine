@@ -90,8 +90,14 @@ payload['updateManifest']='https://raw.githubusercontent.com/alexmolty/Art-Galle
 run('build-vector-index.py')
 vector_payload=json.loads((WORK/'vector-index.json').read_text(encoding='utf8'))
 vector_payload['coverage']['brightnessIndexed']=sum('toneBrightness' in record for record in vector_payload['records'])
-from publish_index import publish_index
+from scripts.style_metadata import enrich_styles
+from publish_index import load_previous,publish_index
 destination=args.publish_dir.resolve();destination.mkdir(parents=True,exist_ok=True)
+_, previous_vector = load_previous(destination/'v2')
+inventory=json.loads((WORK/'full-catalog.json').read_text(encoding='utf8'))
+vector_payload['coverage'].update(enrich_styles(
+ vector_payload, inventory, WORK, previous_vector or {},
+ not args.offline, min(time.time()+420,float(os.environ['ART_INDEX_RUN_DEADLINE']))))
 result=publish_index(destination/'v2',vector_payload)
 print('VECTOR_PUBLICATION '+json.dumps(result),flush=True)
 # Old subscribers retain their v1 manifest and payload when the expanded
