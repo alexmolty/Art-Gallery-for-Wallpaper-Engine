@@ -1,11 +1,11 @@
 {
   "version": 2,
-  "generatedAt": "2026-11-06T23:25:46Z",
+  "generatedAt": "2026-11-06T23:52:38Z",
   "indexedCount": 11234,
-  "file": "art-index-c7de00f8e0652d21.json",
-  "sha256": "c7de00f8e0652d21803bc0e8093fab2446426857eff54d3762886cb15b4f7e20",
-  "bytes": 24188102,
-  "contentSha256": "1efbaf759c7aabb4f7ebe2855e624f886ef3182b3e32b9877ac206e272242340",
+  "file": "art-index-304d7a519bc05488.json",
+  "sha256": "304d7a519bc05488c7bf84ec8cdf72a00b9e4bb7f9f5fa1200681da95dba0dbd",
+  "bytes": 24386248,
+  "contentSha256": "97f4653be52af0f136b4991e71f0c2ca9e1c53018481b8947e6146a330058d50",
   "coverage": {
     "collectionResult": "INCOMPLETE",
     "enumeratedMetCandidates": 14425,
@@ -23,20 +23,22 @@
         "error": "HTTP Error 404: Not Found; HTTP Error 404: Not Found"
       }
     ],
-    "brightnessIndexed": 9400,
+    "brightnessIndexed": 9912,
     "workStylesIndexed": 321,
-    "artistStylesIndexed": 5,
+    "artistStylesIndexed": 1930,
     "documentedStylesIndexed": 144,
-    "styleTaggedWorks": 470,
-    "styleUntaggedWorks": 10764,
+    "wikiArtWorkStylesIndexed": 241,
+    "wikiArtArtistStylesIndexed": 142,
+    "styleTaggedWorks": 2778,
+    "styleUntaggedWorks": 8456,
     "styleResolvedArtistIds": 1813,
-    "stylePendingArtistProfiles": 1763,
-    "styleArtistLookupFailures": 38
+    "stylePendingArtistProfiles": 763,
+    "styleArtistLookupFailures": 0
   },
   "gzip": {
-    "file": "art-index-0d8baa1be4793723.json.gz",
-    "sha256": "0d8baa1be47937232299f9bb6e7b82781a51c501b9cd60cba8b388e2e09eb517",
-    "bytes": 10560233,
-    "uncompressedBytes": 24188102
+    "file": "art-index-207f03315ab1143c.json.gz",
+    "sha256": "207f03315ab1143cc9cda3fbb9e2fbc3caf894b7d4d95b5fd226de3da65d8091",
+    "bytes": 10590662,
+    "uncompressedBytes": 24386248
   }
 }
