@@ -5,7 +5,7 @@ CONTEXT=ROOT/'cache';WORK=CONTEXT/'work/ai-index';SCHEMA=CONTEXT/'outputs/chicag
 parser=argparse.ArgumentParser();parser.add_argument('--offline',action='store_true');parser.add_argument('--skip-collection',action='store_true');parser.add_argument('--verify-portability',action='store_true');parser.add_argument('--publish-dir',type=pathlib.Path,required=True);args=parser.parse_args()
 WORK.mkdir(parents=True,exist_ok=True);SCHEMA.mkdir(parents=True,exist_ok=True)
 for name in ['core.js','museum-catalog.js']:shutil.copyfile(ROOT/'schema'/name,SCHEMA/name)
-for name in ['collect-full-catalog.py','normalize-full-catalog.cjs','build-full-index.py','resolve-missing-previews.py','build-vector-index.py']:shutil.copyfile(ROOT/'scripts'/name,WORK/name)
+for name in ['collect-full-catalog.py','normalize-full-catalog.cjs','build-full-index.py','resolve-missing-previews.py','build-vector-index.py','tone_brightness.py']:shutil.copyfile(ROOT/'scripts'/name,WORK/name)
 for name in ['gallery-records.json','catalog.json','preview-overrides.json']:
  if not (WORK/name).exists():shutil.copyfile(ROOT/'bootstrap'/name,WORK/name)
 shutil.copyfile(ROOT/'bootstrap/masterpieces.json',WORK/'masterpieces.json')
@@ -89,13 +89,15 @@ payload['updateManifest']='https://raw.githubusercontent.com/alexmolty/Art-Galle
 (WORK/'full-index.json').write_text(json.dumps(payload,ensure_ascii=True,separators=(',',':')),encoding='utf8')
 run('build-vector-index.py')
 vector_payload=json.loads((WORK/'vector-index.json').read_text(encoding='utf8'))
+vector_payload['coverage']['brightnessIndexed']=sum('toneBrightness' in record for record in vector_payload['records'])
 from publish_index import publish_index
 destination=args.publish_dir.resolve();destination.mkdir(parents=True,exist_ok=True)
 result=publish_index(destination/'v2',vector_payload)
 print('VECTOR_PUBLICATION '+json.dumps(result),flush=True)
 # Old subscribers retain their v1 manifest and payload when the expanded
 # neighbor table exceeds the legacy client's 32 MiB limit.
-legacy_records=[a for a in payload['records'] if not str(a['id']).startswith('masterpiece-')]
+legacy_records=[{key:value for key,value in a.items() if key!='toneBrightness'}
+ for a in payload['records'] if not str(a['id']).startswith('masterpiece-')]
 legacy_ids={str(a['id']) for a in legacy_records}
 legacy_payload={**payload,'indexedCount':len(legacy_records),'records':legacy_records,
  'neighbors':{id:[row for row in rows if str(row[0]) in legacy_ids] for id,rows in payload['neighbors'].items() if str(id) in legacy_ids},

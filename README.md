@@ -1,5 +1,7 @@
 # Classical Gallery · Daily Art
 
+This repository contains the Wallpaper Engine package and the shared public artwork index used by the Classical Gallery Windows app. See [the index guide](tools/art-index/README.md) for the automated catalogue, visual similarity, and brightness data.
+
 High-resolution classical paintings for a 2560 × 1440 desktop. This is a ready-to-use Wallpaper Engine web wallpaper. No server, programming, or API key is required.
 
 ## Start

@@ -1,12 +1,13 @@
 """Resumable full-catalog image inference. No model or Python runtime goes into the wallpaper."""
 import os
 os.environ['OPENBLAS_NUM_THREADS']='2';os.environ['OMP_NUM_THREADS']='2';os.environ['MKL_NUM_THREADS']='2'
-import concurrent.futures,hashlib,io,json,pathlib,sys,time,urllib.error,urllib.request
+import concurrent.futures,hashlib,io,json,pathlib,sys,threading,time,urllib.error,urllib.request
 HERE=pathlib.Path(__file__).resolve().parent
 sys.path.insert(0,str(HERE/'python-libs'))
 import numpy as np
 import onnxruntime as ort
 from PIL import Image,ImageOps
+from tone_brightness import measure_brightness,measure_legacy_preview
 Image.MAX_IMAGE_PIXELS=48_000_000
 PREVIEWS=HERE/'previews';PREVIEWS.mkdir(exist_ok=True);FEATURES=HERE/'full-features';FEATURES.mkdir(exist_ok=True)
 catalog=json.loads((HERE/'full-catalog.json').read_text(encoding='utf8'))
@@ -15,31 +16,52 @@ overrides=json.loads(override_path.read_text(encoding='utf8')) if override_path.
 for art in catalog:
  if art['id'] in overrides:art['previewUrl']=overrides[art['id']]
 dino_config=json.loads((HERE/'preprocessor_config.json').read_text())
+padding=tuple(round(v*255) for v in dino_config['image_mean'])
 clip_config=json.loads((HERE/'clip-preprocessor_config.json').read_text())
 model_hashes=[hashlib.sha256((HERE/name).read_bytes()).hexdigest() for name in ['model.onnx','clip-vision_model.onnx']]
 signature='full-composition-224-v1:'+':'.join(model_hashes)
 deadline=float(os.environ.get('ART_INDEX_RUN_DEADLINE','inf'))
+# Older vectors with no cached pixels remain usable. Limit extra downloads for
+# their brightness so new visual-index work keeps its existing time budget.
+brightness_backfill=threading.Semaphore(256)
 prior=json.loads((HERE/'build-report.json').read_text(encoding='utf8'))
 old_clip,old_dino=np.load(HERE/'clip-vectors.npy'),np.load(HERE/'dinov2-vectors.npy')
 for i,record in enumerate(prior['provenance']):
  target=FEATURES/(record['id']+'.npz')
  if not target.exists():np.savez_compressed(target,clip=old_clip[i],dino=old_dino[i],signature=signature,previewSha256=record['previewSha256'])
 
+def cached_brightness(target, meta):
+ if 'toneBrightness' in meta or not target.exists():return
+ try:
+  data=target.read_bytes()
+  if hashlib.sha256(data).hexdigest()!=meta['previewSha256']:return
+  with Image.open(io.BytesIO(data)) as image:
+   value=measure_legacy_preview(image,padding)
+  if value is not None:meta['toneBrightness']=value
+ except (OSError,ValueError):pass
+
 def preview(art):
  target=PREVIEWS/(art['id']+'.png');meta_path=target.with_suffix('.json')
  source_key=hashlib.sha256((art['previewUrl']+'|'+art['imageUrl']+'|'+str(art['metadata'].get('metadataUpdatedAt',''))).encode()).hexdigest()
  feature_path=FEATURES/(art['id']+'.npz')
- stale_feature=False
+ stale_feature=False;cached_meta=None
  if feature_path.exists():
   with np.load(feature_path) as cached:
    if str(cached['signature'])==signature and 'sourceKey' in cached and str(cached['sourceKey'])==source_key:
-    return art,{'previewSha256':str(cached['previewSha256']),'sourceKey':source_key,'cachedFeatureOnly':True}
+    cached_meta={'previewSha256':str(cached['previewSha256']),'sourceKey':source_key}
+    if 'toneBrightness' in cached:cached_meta['toneBrightness']=int(cached['toneBrightness'].item())
+    if 'brightnessRetryAt' in cached:cached_meta['brightnessRetryAt']=int(cached['brightnessRetryAt'].item())
+    cached_brightness(target,cached_meta)
+    if 'toneBrightness' in cached_meta or time.time()>=deadline or cached_meta.get('brightnessRetryAt',0)>time.time() or os.environ.get('ART_INDEX_OFFLINE')=='1' or not brightness_backfill.acquire(blocking=False):
+     return art,cached_meta
    stale_feature='sourceKey' in cached and str(cached['sourceKey'])!=source_key
- if time.time()>=deadline:return art,{'error':'Image time budget reached; deferred until a later build'}
- if target.exists() and meta_path.exists():
+ if time.time()>=deadline:return art,cached_meta or {'error':'Image time budget reached; deferred until a later build'}
+ if cached_meta is None and target.exists() and meta_path.exists():
   previous=json.loads(meta_path.read_text())
   if previous.get('sourceKey')==source_key or not stale_feature and not previous.get('sourceKey') and previous.get('source') in [art['previewUrl'],art['imageUrl'],art.get('localPath')]:
-   previous['sourceKey']=source_key;meta_path.write_text(json.dumps(previous),encoding='utf8');return art,previous
+   previous['sourceKey']=source_key
+   cached_brightness(target,previous)
+   meta_path.write_text(json.dumps(previous),encoding='utf8');return art,previous
  errors=[]
  for source in dict.fromkeys([art.get('localPath') or art['previewUrl'],art['imageUrl']]):
   try:
@@ -50,14 +72,24 @@ def preview(art):
     with urllib.request.urlopen(request,timeout=25) as response:data=response.read(32*1024*1024+1)
    if len(data)>32*1024*1024:raise ValueError('Image exceeds 32MiB')
    with Image.open(io.BytesIO(data)) as original:
-    original.load();image=ImageOps.exif_transpose(original).convert('RGB');image.thumbnail((224,224),Image.Resampling.LANCZOS)
-    canvas=Image.new('RGB',(224,224),tuple(round(v*255) for v in dino_config['image_mean']))
+    original.load();oriented=ImageOps.exif_transpose(original)
+    value=measure_brightness(oriented)
+    if cached_meta is not None:
+     if value is not None:cached_meta['toneBrightness']=value
+     else:cached_meta['brightnessRetryAt']=int(time.time())+3*86400
+     return art,cached_meta
+    image=oriented.convert('RGB');image.thumbnail((224,224),Image.Resampling.LANCZOS)
+    canvas=Image.new('RGB',(224,224),padding)
     canvas.paste(image,((224-image.width)//2,(224-image.height)//2));canvas.save(target)
    meta={'id':art['id'],'source':source,'sourceKey':source_key,'sourceSha256':hashlib.sha256(data).hexdigest(),'previewSha256':hashlib.sha256(target.read_bytes()).hexdigest(),'pageUrl':art['pageUrl']}
+   if value is not None:meta['toneBrightness']=value
    meta_path.write_text(json.dumps(meta),encoding='utf8');return art,meta
   except Exception as error:
    errors.append(str(error))
    if isinstance(error,urllib.error.HTTPError) and error.code in (403,429):break
+ if cached_meta is not None:
+  cached_meta['brightnessRetryAt']=int(time.time())+3*86400
+  return art,cached_meta
  return art,{'error':'; '.join(errors)}
 
 options=ort.SessionOptions();options.intra_op_num_threads=2;options.inter_op_num_threads=1
@@ -89,8 +121,10 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
     with Image.open(PREVIEWS/(art['id']+'.png')) as image:pixels=np.asarray(image,dtype=np.float32)
     if cv is None:cv=feature(pixels,clip,clip_config,'clip')
     if dv is None:dv=feature(pixels,dino,dino_config,'dino')
-   np.savez_compressed(feature_path,clip=cv,dino=dv,signature=signature,previewSha256=meta['previewSha256'],sourceKey=meta['sourceKey'])
-   indexed.append(art);clip_vectors.append(cv);dino_vectors.append(dv)
+   brightness={'toneBrightness':meta['toneBrightness']} if 'toneBrightness' in meta else {}
+   brightness_cache=brightness or {key:meta[key] for key in ('brightnessRetryAt',) if key in meta}
+   np.savez_compressed(feature_path,clip=cv,dino=dv,signature=signature,previewSha256=meta['previewSha256'],sourceKey=meta['sourceKey'],**brightness_cache)
+   indexed.append({**art,'metadata':{**art['metadata'],**brightness}});clip_vectors.append(cv);dino_vectors.append(dv)
   if (n+1)%100==0:print(json.dumps({'stage':'full image inference','processed':n+1,'total':len(catalog),'indexed':len(indexed),'failed':len(failed)}),flush=True)
 order=np.argsort([a['id'] for a in indexed]);indexed=[indexed[i] for i in order]
 cv=np.stack(clip_vectors)[order];dv=np.stack(dino_vectors)[order]

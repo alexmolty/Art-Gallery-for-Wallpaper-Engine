@@ -4,6 +4,8 @@ The `Update museum visual index` GitHub Actions workflow runs daily at 10:43 UTC
 
 The job enumerates Cleveland painting pages and Met painting searches by department, validates museum rights and image metadata with the gallery schema, and computes real image features with CLIP ViT-B/32 and DINOv2 ViT-S/14. Unchanged cached features are reused. New or changed images are processed in the build job, using two CPU threads. No neural network runs in Wallpaper Engine.
 
+The v2 records also carry an optional `toneBrightness` value from 0 to 255, measured from the artwork pixels before model padding. The Windows app classifies scores below 128 as dark. The workflow reuses matching cached previews and backfills at most 256 older vector-only records from their sources per run. Coverage is reported as `brightnessIndexed`. The v1 publication keeps its existing schema and endpoints.
+
 Curated public-domain world masterpieces live in `bootstrap/masterpieces.json`; source and image URLs are explicitly reviewed. They enter the v2 index only after image inference succeeds. The legacy v1 publication excludes their new IDs so existing clients can continue reading it.
 
 The bootstrap contains 3,430 public museum records and their previously computed image features, including all 391 starter artworks. Both encoders use FP32 inference; the initial INT8 CLIP variant was replaced after independent checks found CPU-dependent differences. It contains no private image, personal folder path, credential, model weight or executable. The two model downloads are pinned by revision and verified against SHA-256 hashes in `run.py`. A manual `verify_only` workflow run independently recomputes two real museum images on the runner and checks them against the bootstrap before publishing.
@@ -25,7 +27,9 @@ python tools/art-index/run.py --publish-dir index-publication
 
 The public branch holds a legacy manifest and a separate `v2/manifest.json`, with SHA-256-named JSON and gzip data. Each publisher retains the immediately previous payload. If the legacy format grows beyond its size limit, its prior manifest is retained while v2 continues to advance. Unchanged contents keep the current manifest. The wallpaper verifies the manifest, hash, size, record IDs and allowed museum image hosts before replacing its working index, and caches one validated version. This branch distributes data only; no external JavaScript is executed. Private API keys are not required.
 
-Public index endpoint: https://raw.githubusercontent.com/alexmolty/Art-Gallery-for-Wallpaper-Engine/art-index/manifest.json
+Public index endpoint: https://raw.githubusercontent.com/alexmolty/Classical-Gallery/art-index/manifest.json
 
-Full-vector index endpoint: https://raw.githubusercontent.com/alexmolty/Art-Gallery-for-Wallpaper-Engine/art-index/v2/manifest.json
+Full-vector index endpoint: https://raw.githubusercontent.com/alexmolty/Classical-Gallery/art-index/v2/manifest.json
+
+The publication retains the original manifest URLs embedded by older clients. Keep the previous repository name reserved for GitHub's compatibility mapping.
 
