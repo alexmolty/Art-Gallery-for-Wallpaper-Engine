@@ -1,45 +1,45 @@
 {
   "version": 2,
-  "generatedAt": "2026-11-07T12:10:04Z",
-  "indexedCount": 11234,
-  "file": "art-index-9c6609299c30814f.json",
-  "sha256": "9c6609299c30814ffef9421e420799adeb4600813fd8cd5d0df3b7b62d1807b4",
-  "bytes": 24380212,
-  "contentSha256": "1140d020f8f7960f1030214507d3e906c225af7063eae1567d29155b7445b179",
+  "generatedAt": "2026-11-07T13:11:13Z",
+  "indexedCount": 11247,
+  "file": "art-index-eda868adb0a793dd.json",
+  "sha256": "eda868adb0a793dd2f88dfd597b8188dcc9b51d45ae18a43a68a5fba6ed008a3",
+  "bytes": 24440008,
+  "contentSha256": "7ceb9d93cd4eed73893242e7b60f217cab01638808f00dde6bd6e62598abd33a",
   "coverage": {
     "collectionResult": "INCOMPLETE",
     "enumeratedMetCandidates": 14426,
     "metPendingMetadata": 277,
     "clevelandError": "",
-    "imageCandidates": 11236,
-    "indexedImages": 11234,
+    "imageCandidates": 11249,
+    "indexedImages": 11247,
     "pendingImages": [
-      {
-        "id": "met-45663",
-        "error": "HTTP Error 404: Not Found; HTTP Error 404: Not Found"
-      },
       {
         "id": "met-42560",
         "error": "HTTP Error 404: Not Found; HTTP Error 404: Not Found"
+      },
+      {
+        "id": "met-45663",
+        "error": "HTTP Error 404: Not Found; HTTP Error 404: Not Found"
       }
     ],
-    "brightnessIndexed": 10484,
+    "brightnessIndexed": 11009,
     "workStylesIndexed": 316,
-    "artistStylesIndexed": 1913,
-    "documentedStylesIndexed": 144,
-    "wikiArtWorkStylesIndexed": 240,
-    "wikiArtArtistStylesIndexed": 72,
-    "styleTaggedWorks": 2685,
-    "styleUntaggedWorks": 8549,
+    "artistStylesIndexed": 2066,
+    "documentedStylesIndexed": 151,
+    "wikiArtWorkStylesIndexed": 241,
+    "wikiArtArtistStylesIndexed": 61,
+    "styleTaggedWorks": 2835,
+    "styleUntaggedWorks": 8412,
     "styleResolvedArtistIds": 1813,
-    "stylePendingArtistProfiles": 763,
-    "styleArtistLookupFailures": 31,
-    "styleLabelsPendingReview": 25
+    "stylePendingArtistProfiles": 0,
+    "styleArtistLookupFailures": 0,
+    "styleLabelsPendingReview": 39
   },
   "gzip": {
-    "file": "art-index-858d7d05bc21450d.json.gz",
-    "sha256": "858d7d05bc21450d73e62a08dc4074a8d9c8c890defb03fab4179b0d05f00449",
-    "bytes": 10589882,
-    "uncompressedBytes": 24380212
+    "file": "art-index-383fdad4d356a63d.json.gz",
+    "sha256": "383fdad4d356a63d72c7e29546c1a9f2934dda51021b520c924ba693306cd216",
+    "bytes": 10609649,
+    "uncompressedBytes": 24440008
   }
 }
