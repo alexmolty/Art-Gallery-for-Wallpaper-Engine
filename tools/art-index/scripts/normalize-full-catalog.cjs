@@ -11,6 +11,7 @@ const cma=JSON.parse(fs.readFileSync(path.join(here,'full-cleveland.json'),'utf8
 for(const record of cma){
  const art=window.MuseumCatalog.normalize('cleveland',record);
  if(!art){rejected.cleveland++;continue;}
+ if(record.is_highlight===true)art.masterpiece=true;
  byId.set(String(art.id),art);previews.set(String(art.id),record.images.web?.url||record.images.print.url);
 }
 const metFiles=fs.readdirSync(path.join(here,'full-raw')).filter(name=>/^met-\d+\.json$/.test(name));
@@ -18,6 +19,7 @@ for(const file of metFiles){
  const record=JSON.parse(fs.readFileSync(path.join(here,'full-raw',file),'utf8'));
  const art=window.MuseumCatalog.normalize('met',record);
  if(!art){rejected.met++;byId.delete('met-'+record.objectID);continue;}
+ if(record.isHighlight===true)art.masterpiece=true;
  byId.set(String(art.id),C.mergeArtworkMetadata(byId.get(String(art.id)),art));
  const reference = String(record.artistWikidata_URL || '').match(/^https?:\/\/(?:www\.)?wikidata\.org\/(?:wiki|entity)\/(Q[1-9]\d*)\/?$/i);
  if (reference) artistReferences.set(String(art.id), reference[1].toUpperCase());

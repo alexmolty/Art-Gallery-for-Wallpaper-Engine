@@ -21,7 +21,7 @@ def get(url):
    if isinstance(error,urllib.error.HTTPError) and error.code in (403,429):raise
    if attempt==2:raise
    time.sleep(2*(attempt+1))
-fields='id,title,creators,creation_date,creation_date_earliest,creation_date_latest,culture,technique,department,collection,type,share_license_status,images,url,updated_at'
+fields='id,title,creators,creation_date,creation_date_earliest,creation_date_latest,culture,technique,department,collection,type,share_license_status,images,url,updated_at,is_highlight'
 base='https://openaccess-api.clevelandart.org/api/artworks/?'+urllib.parse.urlencode({'cc0':'','has_image':'1','type':'Painting','fields':fields,'limit':'400'})
 cleveland_file=HERE/'full-cleveland.json';cleveland_error=None
 try:
