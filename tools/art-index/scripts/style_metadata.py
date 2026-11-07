@@ -27,6 +27,117 @@ MOVEMENTS = {
 REVIEWED_PERIODS = {('Q134741', 'neo-impressionism'): (1886, 1890)}
 UNCERTAIN_ARTIST = re.compile(r'^(?:unknown|anonymous|unidentified|attributed to|after|school of|circle of|workshop of|studio of|follower of|manner of|copy after)\b', re.I)
 QID = re.compile(r'Q[1-9][0-9]*')
+# Reviewed painting vocabulary, mirrored in the desktop gallery's core.js.
+# Raw source labels remain cached so new candidates can be reviewed later.
+STYLE_VOCABULARY = """Renaissance
+Baroque|Baroque painting
+Rococo
+Neoclassicism|Neoclassical|Neo-classicism|Neoclassical painting
+Romanticism|Romantic
+Realism|Realist
+Impressionism|Impressionist
+Neo-Impressionism|Neo-Impressionist
+Post-Impressionism|Post-Impressionist
+Symbolism|Symbolist
+Academic Art|Academicism|Academism|L'art pompier|Art pompier
+Aestheticism
+American Barbizon School
+American Impressionism
+American Realism
+American Scene Painting
+Ami School
+Art Nouveau|Art Nouveau (Modern)|Jugendstil
+Barbizon School
+Bolognese School
+Caravaggisti
+Classicism
+Cloisonnism
+Cretan School
+Danish Golden Age Painting|Danish Golden Age
+Divisionism
+Dutch Golden Age Painting|Dutch Golden Age
+Düsseldorf School|Düsseldorf School of Painting
+Early Netherlandish Painting
+Early Rajput-Chaurapanchasika Style
+Early Renaissance
+Etruscan School
+Expressionism
+Fijnschilder
+Flemish Baroque|Flemish Baroque Painting
+Florentine School|Florentine Renaissance Art
+French Realism
+French Renaissance
+Futurism
+German Renaissance
+German Romanticism
+Gothic Art
+Hague School
+High Renaissance
+Hudson River School
+International Gothic
+Italian Baroque|Italian Baroque Painting
+Italian Renaissance
+Jaipur School|Rajput: Jaipur
+Japonisme
+Kanō School
+Katsukawa School
+Kota School|Rajput: Kota
+Kyō-Kanō School
+Late Baroque
+Luminism
+Magic Realism|Magical Realism
+Mannerism|Mannerism (Late Renaissance)
+Maruyama School
+Mughal Painting|Mughal
+Nagasaki School
+Naïve Art|Naïve Art (Primitivism)
+Nanga|Bunjinga
+Nanpin School
+Naturalism
+Nazarene Movement
+Neo-Grec|Neo-Pompeian
+Nihonga
+Northern Renaissance
+Orientalism|Orientalist Painting
+Pahari Painting
+Pointillism
+Pont-Aven School
+Pre-Raphaelite Brotherhood|Pre-Raphaelitism
+Pre-Romanticism
+Primitivism
+Proto-Renaissance|Proto Renaissance
+Rajput|Rajput Painting
+Rinpa School|Rimpa School
+Rococo Revival
+School of Fontainebleau
+Shanghai School
+Shijō School
+Sienese School
+Southern School
+Spanish Baroque|Spanish Baroque Painting
+Spanish Renaissance
+Synthetism
+Tenebrism
+Thanjavur School|Tanjore Painting
+Tonalism
+Torii School
+Tosa School
+Ukiyo-e
+Umbrian School
+Unkoku School
+Utagawa School
+Utrecht Caravaggism
+Venetian School
+Veronese School
+Vienna Secession
+Wu School
+Xin'an School
+Yushan School
+Zhe School"""
+
+# Nationalmuseum Art Bulletin 23 (2016), Two Examples of French Naturalism.
+# https://nationalmuseum.diva-portal.org/smash/get/diva2:1169128/FULLTEXT01.pdf
+REVIEWED_ARTIST_STYLES = {'Q541859': ['Naturalism']}
 DAY = 86400
 USER_AGENT = 'ClassicalGallery-StyleIndex/1.0 (https://github.com/alexmolty/Classical-Gallery)'
 
@@ -38,6 +149,36 @@ WIKIART_FILES = {
     'works': ('artwork_data/artwork_data_merged.csv', 'aa195b87e7bff6e87b8c1f02141f2f25a55ef9f75f8659ea99e281955702a1be', 80_000_000),
     'artists': ('artist_data/artist_data_new.csv', '1c5deed3380d7ea02e06023fbd4092ac5262876ba51b66f1bf90b0d0242a6f77', 1_000_000),
 }
+
+
+def normalized_style_name(value):
+    decomposed = unicodedata.normalize('NFKD', value)
+    name = ''.join(c for c in decomposed if not unicodedata.category(c).startswith('M')).lower().strip()
+    name = re.sub(r'^style:', '', name)
+    name = re.sub(r'[\u2010-\u2015]', '-', name).replace('\u2018', "'").replace('\u2019', "'")
+    return ' '.join(re.sub(r'\s*-\s*', '-', name).split())
+
+
+APPROVED_STYLES = {}
+for style_row in STYLE_VOCABULARY.splitlines():
+    display, *aliases = style_row.split('|')
+    canonical = display.lower() if display.lower() in MOVEMENTS.values() else display
+    for style_name in [display, *aliases]:
+        APPROVED_STYLES[normalized_style_name(style_name)] = canonical
+
+
+def approved_styles(labels, rejected):
+    result = set()
+    for label in labels:
+        if not isinstance(label, str):
+            continue
+        key = normalized_style_name(label)
+        style = APPROVED_STYLES.get(key)
+        if style:
+            result.add(style)
+        elif key:
+            rejected[key] += 1
+    return sorted(result)
 
 
 def wikiart_file(directory, name, allow_network, deadline):
@@ -374,6 +515,7 @@ def enrich_styles(payload, inventory, directory, previous, allow_network, deadli
 
     work_tagged = artist_tagged = documented = 0
     wikiart_work_tagged = wikiart_artist_tagged = 0
+    rejected = collections.Counter()
     for record in payload['records']:
         id = str(record['id'])
         art = indexed.get(id, {})
@@ -383,20 +525,18 @@ def enrich_styles(payload, inventory, directory, previous, allow_network, deadli
         earlier = old.get(id, {})
         same_work = all(earlier.get(key) == record.get(key) for key in ('title', 'artist', 'dateStart', 'dateEnd'))
         match = works.get('entries', {}).get(museum_work_key(record))
-        if match:
-            record['workMovements'] = match['styles']
+        if not match and not works.get('checkedAt') and same_work and earlier.get('workStyleWikidata'):
+            match = {'styles': earlier.get('workMovements', []), 'qid': earlier['workStyleWikidata']}
+        if match and (styles := approved_styles(match['styles'], rejected)):
+            record['workMovements'] = styles
             record['workStyleWikidata'] = match['qid']
-        elif not works.get('checkedAt') and same_work and earlier.get('workMovements') and earlier.get('workStyleWikidata'):
-            record['workMovements'] = earlier['workMovements']
-            record['workStyleWikidata'] = earlier['workStyleWikidata']
-        if record.get('workMovements'):
             work_tagged += 1
             continue
         work_reference = wikiart.get('works', {}).get(id)
         if 'works' not in wikiart and same_work and earlier.get('workStyleWikiArt') and earlier.get('workMovements'):
             work_reference = (earlier['workStyleWikiArt'], earlier['workMovements'])
-        if work_reference:
-            record['workStyleWikiArt'], record['workMovements'] = work_reference
+        if work_reference and (styles := approved_styles(work_reference[1], rejected)):
+            record['workStyleWikiArt'], record['workMovements'] = work_reference[0], styles
             wikiart_work_tagged += 1
             continue
         qid = resolved.get(id)
@@ -409,6 +549,7 @@ def enrich_styles(payload, inventory, directory, previous, allow_network, deadli
             styles = earlier.get('artistMovements', [])
         else:
             styles = []
+        styles = approved_styles(styles, rejected) or REVIEWED_ARTIST_STYLES.get(qid)
         if styles:
             record['artistMovements'] = styles
             record['artistStyleWikidata'] = qid
@@ -417,9 +558,11 @@ def enrich_styles(payload, inventory, directory, previous, allow_network, deadli
         artist_reference = wikiart.get('artists', {}).get(id)
         if 'artists' not in wikiart and same_work and earlier.get('artistStyleWikiArt') and earlier.get('artistMovements'):
             artist_reference = (earlier['artistStyleWikiArt'], earlier['artistMovements'])
-        if artist_reference:
-            record['artistStyleWikiArt'], record['artistMovements'] = artist_reference
+        if artist_reference and (styles := approved_styles(artist_reference[1], rejected)):
+            record['artistStyleWikiArt'], record['artistMovements'] = artist_reference[0], styles
             wikiart_artist_tagged += 1
+    if rejected:
+        print('STYLE_LABELS_PENDING_REVIEW ' + json.dumps(rejected.most_common(25)), flush=True)
     tagged = documented + work_tagged + artist_tagged + wikiart_work_tagged + wikiart_artist_tagged
     return {
         'workStylesIndexed': work_tagged, 'artistStylesIndexed': artist_tagged,
@@ -429,4 +572,5 @@ def enrich_styles(payload, inventory, directory, previous, allow_network, deadli
         'styleResolvedArtistIds': len(counts),
         'stylePendingArtistProfiles': sum(cache.get(qid, {}).get('schema') != 2 for qid in counts),
         'styleArtistLookupFailures': failures,
+        'styleLabelsPendingReview': len(rejected),
     }
